@@ -1,0 +1,6 @@
+- `node ace migration:run` : pour exécuter les migrations.
+- `node ace migration:reset` : pour réinitialiser les migrations.
+- `node ace migration:refresh --seed` : pour rafraîchir les migrations et peupler la base de données.
+-  node ace make:model nom -m
+-  node ace make:controller NomController
+
