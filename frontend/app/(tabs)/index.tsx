@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
+import {Text, TouchableOpacity, View} from 'react-native';
+import {Link} from "expo-router";
 
 export default function Index() {
     return (
@@ -8,6 +9,11 @@ export default function Index() {
                 Open up App.tsx to start working on your app!
             </Text>
             <StatusBar style="auto" />
+            <Link href="/register" className="text-blue-500 mt-4">
+                <TouchableOpacity className="bg-blue-500 p-4 rounded">
+                    <Text className="text-white font-bold">Go to register</Text>
+                </TouchableOpacity>
+            </Link>
         </View>
     );
 }
