@@ -3,4 +3,5 @@
 - `node ace migration:refresh --seed` : pour rafraîchir les migrations et peupler la base de données.
 -  node ace make:model nom -m
 -  node ace make:controller NomController
+-  node ace make:migration
 
