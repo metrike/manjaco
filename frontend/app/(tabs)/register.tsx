@@ -9,7 +9,6 @@ const Register = () => {
 
     const handleRegister = async () => {
         const response=await registerUser({ username, email, password })
-        console.log(response)
     };
 
     return (

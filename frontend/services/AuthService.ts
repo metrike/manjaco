@@ -2,14 +2,17 @@ import UserRegister from "../type/user_register";
 import AXIOS_ERROR from "../type/axios_error";
 import axios from "axios";
 const API_URL=process.env.EXPO_PUBLIC_API_URL as string
-import RETURN  from "../type/return";
+
 import UserLogin from "../type/user_login";
+import Return from "../type/return";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const config = {
     headers: {
         "Content-Type": "application/json",
     },
     withCredentials: true
 }
+
 
 export const registerUser = async (userData: UserRegister): Promise<boolean> => {
 
@@ -35,12 +38,12 @@ export const registerUser = async (userData: UserRegister): Promise<boolean> => 
     }
 };
 
-export const loginUser = async (userData: UserLogin): Promise<RETURN> => {
+export const loginUser = async (userData: UserLogin): Promise<Return> => {
 
     try {
         const { username, password } = userData;
 
-        const response = await axios.post<RETURN>(
+        const response = await axios.post<Return>(
             `${API_URL}/auth/login`,
             {
                 username,
@@ -48,7 +51,6 @@ export const loginUser = async (userData: UserLogin): Promise<RETURN> => {
             },
             config
         );
-        console.log(response)
 
         return response.data;
     } catch (err: unknown) {
@@ -61,3 +63,27 @@ export const loginUser = async (userData: UserLogin): Promise<RETURN> => {
         }
     }
 };
+
+export const checkIsLogin = async () : Promise<Return> =>{
+
+    const token= await AsyncStorage.getItem("token")
+    const configWithToken={
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        withCredentials: true
+    }
+    try {
+        const response = await axios.post<Return>(`${API_URL}/auth/checkIsLogin`, {}, configWithToken)
+
+        return response.data
+    } catch (err: unknown) {
+        if ((err as AXIOS_ERROR).message) {
+            AsyncStorage.removeItem('token')
+            throw new Error("Error connecting")
+        } else {
+            throw new Error("Error connecting to server")
+        }
+    }
+}

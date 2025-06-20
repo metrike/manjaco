@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import {loginUser} from "../../services/AuthService";
+import { useAuth } from "../../provider/AuthProvider";
+import {useRouter} from "expo-router";
 
 const Login = () => {
+    const { login } = useAuth();
+    const router = useRouter();
+
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const handleLogin = async () => {
-        await loginUser({ username, password });
+        const response=await login({ username, password });
+        if (response){
+            router.push('/home');
+        }
     };
 
     return (
