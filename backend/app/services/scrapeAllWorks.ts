@@ -99,8 +99,7 @@ export async function scrapeAllWorks ({
           anchors.map(a => {
             const cardEl   = (a as any).closest(card)!;
             const titleEl  = titleSel ? cardEl.querySelector(titleSel) : a;
-            const imgEl    = imgSel  ? cardEl.querySelector<any>(imgSel) : null;
-            const latestEl = latestSel ? cardEl.querySelector(latestSel) : null;
+            const imgEl = imgSel ? cardEl.querySelector(imgSel) : null;            const latestEl = latestSel ? cardEl.querySelector(latestSel) : null;
 
             return {
               title      : titleEl?.textContent?.trim() ?? '',
