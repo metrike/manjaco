@@ -38,4 +38,4 @@ jobs:
           NODE_ENV: development
           APP_KEY: ${{ secrets.APP_KEY }}
         run: |
-          node ace db:seed --files service/scrap_manga_seeder.ts
+          node ace db:seed --files services/scrap_manga_seeder.ts
