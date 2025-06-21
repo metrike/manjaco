@@ -40,4 +40,4 @@ jobs:
           LOG_LEVEL: info
 
         run: |
-          node ace db:seed --files services/scrap_manga_seeder
+          node ace db:seed --files app/services/scrap_manga_seeder
