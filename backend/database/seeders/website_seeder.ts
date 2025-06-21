@@ -20,7 +20,7 @@ export default class extends BaseSeeder {
           chapter  : 'li.wp-manga-chapter, a.project__chapter',
           loadMore : 'button.project__chapter-load-more, button.btn-load-more',
         },
-        limit: 10,
+        limit: 0,
         parallelChunks: 5,
         coverInPage: false,
       },
@@ -41,25 +41,9 @@ export default class extends BaseSeeder {
           chapter  : '#listing a',
           loadMore : '',
         },
-        limit: 10,
+        limit: 0,
         parallelChunks: 5,
         coverInPage: true,
-      },
-      {
-        name: 'Webtoon (Exemple)',
-        root: 'https://www.webtoons.com',
-        listPath: '/fr/challenge/list?title_no=1',
-        selectors: {
-          title: '.subj',
-          img  : '.thumb img',
-        },
-        chapterSelectors: {
-          chapter: '',  // à compléter selon le site
-          loadMore: '',
-        },
-        limit: 10,
-        parallelChunks: 5,
-        coverInPage: false,
       },
     ])
   }
