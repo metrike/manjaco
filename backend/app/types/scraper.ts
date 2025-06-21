@@ -1,4 +1,6 @@
 // types/scraper.ts
+import {ChapterPageSelectors} from "#services/scrapeChapterCount";
+
 export interface ListPageSelectors {
   /** carte contenant titre + lien + cover */
   card: string
@@ -12,6 +14,9 @@ export interface ListPageSelectors {
   loadMore?: string
   /** lien vers la page suivante (facultatif) */
   nextPage?: string
+
+  latestChapter?: string
+
 }
 
 export interface ScraperConfig {

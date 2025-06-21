@@ -76,7 +76,7 @@ export async function scrapeChapterCount ({
       selectors.chapter,
       els => els.length,
     )
-    console.log(`✅ ${url} → ${count} chapitres`)
+    console.log(`🔎 DEBUG ${url} → ${count} chapitres trouvés avec "${selectors.chapter}"`)
     return count
   } finally {
     await browser.close()

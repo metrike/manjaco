@@ -9,9 +9,9 @@ export default function Index() {
                 Open up App.tsx to start working on your app!
             </Text>
             <StatusBar style="auto" />
-            <Link href="/register" className="text-blue-500 mt-4">
+            <Link href="/login" className="text-blue-500 mt-4">
                 <TouchableOpacity className="bg-blue-500 p-4 rounded">
-                    <Text className="text-white font-bold">Go to register</Text>
+                    <Text className="text-white font-bold">Go to login</Text>
                 </TouchableOpacity>
             </Link>
         </View>
