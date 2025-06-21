@@ -32,15 +32,18 @@ export async function scrapeAllWorks ({
     nextPage,
   }: ListPageSelectors = selectors
 
-  const browser: Browser = await puppeteer.launch({
-    headless: false,
+  const browser = await puppeteer.launch({
+    headless: 'new', // 'new' ou true selon la version
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-blink-features=AutomationControlled',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--window-size=1920x1080',
     ],
-    defaultViewport: { width: 1280, height: 1080 },
   })
+
 
   console.log('🧭 Chromium prêt')
 
