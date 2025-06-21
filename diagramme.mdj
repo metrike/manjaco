@@ -1,0 +1,62 @@
+[
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_User",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAAJR8ykVcyC81/PYjO3V+WqR",
+    "x": 100,
+    "y": 100
+  },
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_Work",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAA6JGi7UDhlaOI6ZNYU4XUo=",
+    "x": 400,
+    "y": 100
+  },
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_UserProgress",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAAGJFAGxPbOn/OESaPmSsgiW",
+    "x": 250,
+    "y": 300
+  },
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_Scraper",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAAOH2ZfmumEqfOVjLocYcQPf",
+    "x": 700,
+    "y": 100
+  },
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_MangaKakalotScraper",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAAhtjHjjUPvr3ZZrM2x3UwMr",
+    "x": 700,
+    "y": 250
+  },
+  {
+    "_type": "UMLClassView",
+    "_id": "VIEW_AsuraScansScraper",
+    "_parent": {
+      "$ref": "AAAAAAFF+qBtyKM79qY="
+    },
+    "model": "AAAAAA=nKGqL85dR=WL9Gm1/Vof1",
+    "x": 700,
+    "y": 350
+  }
+]
