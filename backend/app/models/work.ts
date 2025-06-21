@@ -11,7 +11,7 @@ export default class Work extends BaseModel {
   declare title: string
 
   @column()
-  declare type: 'MANGA' | 'MANHWA' | 'NOVEL'
+  declare type:string
 
   @column()
   declare sourceUrl: string

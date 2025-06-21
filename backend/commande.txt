@@ -4,4 +4,4 @@
 -  node ace make:model nom -m
 -  node ace make:controller NomController
 -  node ace make:migration
-
+-  node ace make:seeder scrap_manga

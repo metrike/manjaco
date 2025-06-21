@@ -32,4 +32,5 @@ export interface ScraperConfig {
   limit?: number
   /** Taille des paquets parallèles pour le comptage des chapitres */
   parallelChunks?: number
+  coverInPage?: boolean // ← ajouté, pour les sites qui n’ont pas de cover dans la liste
 }

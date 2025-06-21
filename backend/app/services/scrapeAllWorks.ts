@@ -31,7 +31,7 @@ export async function scrapeAllWorks ({
 
   /* ────────────────────── LANCEMENT CHROMIUM ──────────────────────── */
   const browser: Browser = await puppeteer.launch({
-    headless : 'new',
+    headless : true,
     args : [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -54,7 +54,7 @@ export async function scrapeAllWorks ({
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
 
-    const thumbs: { title: string; sourceUrl: string; coverUrl: string|null }[] = []
+    const thumbs: { title: string; sourceUrl: string; coverUrl: string|null,latestText:string }[] = []
 
     /* ────────────────── BOUCLE LISTE + PAGINATION ─────────────────── */
     while (thumbs.length < hardLimit) {
