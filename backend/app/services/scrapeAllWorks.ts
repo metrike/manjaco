@@ -97,14 +97,14 @@ export async function scrapeAllWorks ({
         /* on reçoit anchors (NodeList) + sélecteurs côté page */
         (anchors, { card, titleSel, imgSel, latestSel }) =>
           anchors.map(a => {
-            const cardEl   = (a as HTMLElement).closest(card)!;
+            const cardEl   = (a as any).closest(card)!;
             const titleEl  = titleSel ? cardEl.querySelector(titleSel) : a;
-            const imgEl    = imgSel  ? cardEl.querySelector<HTMLImageElement>(imgSel) : null;
+            const imgEl    = imgSel  ? cardEl.querySelector<any>(imgSel) : null;
             const latestEl = latestSel ? cardEl.querySelector(latestSel) : null;
 
             return {
               title      : titleEl?.textContent?.trim() ?? '',
-              sourceUrl  : (a as HTMLAnchorElement).href,
+              sourceUrl  : (a as any).href,
               coverUrl   : imgEl?.getAttribute('data-src') || imgEl?.src || null,
               /* ←—— texte “Chapitre xxx” pour comptage rapide */
               latestText : latestEl?.textContent ?? '',
@@ -126,7 +126,7 @@ export async function scrapeAllWorks ({
       if (thumbs.length >= hardLimit || !nextPage) break
       const next = await page.$(nextPage)
       if (!next) break
-      currentUrl = await page.evaluate(a => (a as HTMLAnchorElement).href, next)
+      currentUrl = await page.evaluate(a => (a as any).href, next)
     }
 
     console.log(`✅ Listage terminé – ${thumbs.length} série(s)`)

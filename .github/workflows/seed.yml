@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: ⚙️ Build project (si nécessaire)
-        run: npm run build --ignore-ts-errors
+        run: node ace build --ignore-ts-errors
 
       - name: 🗄️ Run Adonis Seeder
         env:

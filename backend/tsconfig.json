@@ -4,6 +4,7 @@
     "rootDir": "./",
     "outDir": "./build",
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "lib": ["esnext", "dom"]
   }
 }
