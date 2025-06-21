@@ -37,5 +37,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NODE_ENV: development
           APP_KEY: ${{ secrets.APP_KEY }}
+          LOG_LEVEL: info
+
         run: |
           node ace db:seed --files services/scrap_manga_seeder.ts
