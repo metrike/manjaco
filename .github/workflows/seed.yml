@@ -2,11 +2,11 @@ name: Run Seeder
 
 on:
   workflow_dispatch:  # Permet de lancer manuellement depuis l’onglet Actions
-  push:               # 👉 Ajoute ceci
+  push:
     branches:
-      - main          # ou 'master' selon ta branche par défaut
+      - main           # ou 'master' selon ta branche principale
     paths:
-      - 'backend/**'  # Lance seulement si des fichiers dans backend changent
+      - 'backend/**'   # Se déclenche si des fichiers dans backend changent
       - '.github/workflows/seed.yml'
 
 jobs:
@@ -38,6 +38,12 @@ jobs:
           NODE_ENV: development
           APP_KEY: ${{ secrets.APP_KEY }}
           LOG_LEVEL: info
-
         run: |
           node ace db:seed --files "database/seeders/scrap_manga_seeder"
+
+      - name: 📸 Upload screenshot for debug (si scraping échoue)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: backend/tmp/page.png
