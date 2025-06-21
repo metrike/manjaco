@@ -1,7 +1,13 @@
 name: Run Seeder
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Permet de lancer manuellement depuis l’onglet Actions
+  push:               # 👉 Ajoute ceci
+    branches:
+      - main          # ou 'master' selon ta branche par défaut
+    paths:
+      - 'backend/**'  # Lance seulement si des fichiers dans backend changent
+      - '.github/workflows/seed.yml'
 
 jobs:
   seed:
