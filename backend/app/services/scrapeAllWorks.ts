@@ -18,15 +18,14 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks ({
-                                        root,
-                                        listPath,
-                                        selectors,
-                                        chapterSelectors,
-                                        limit = 0,
-                                        parallelChunks = 5,
-                                      }: ScraperConfig): Promise<WorkInfo[]> {
-
+export async function scrapeAllWorks({
+                                       root,
+                                       listPath,
+                                       selectors,
+                                       chapterSelectors,
+                                       limit = 0,
+                                       parallelChunks = 5,
+                                     }: ScraperConfig): Promise<WorkInfo[]> {
   const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
@@ -49,12 +48,10 @@ export async function scrapeAllWorks ({
       '--disable-gpu',
       '--disable-dev-shm-usage',
       '--disable-software-rasterizer',
-      '--proxy-server=http://168.138.211.5:8080'
     ],
   })
 
-
-  console.log('🧭 Chromium prêt')
+  console.log('🧽 Chromium prêt')
 
   try {
     const page: Page = await browser.newPage()
@@ -62,6 +59,23 @@ export async function scrapeAllWorks ({
     await page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
     )
+
+    await page.setExtraHTTPHeaders({
+      'accept-language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+    })
+
+    await page.evaluateOnNewDocument(() => {
+      const getParameter = WebGLRenderingContext.prototype.getParameter
+      WebGLRenderingContext.prototype.getParameter = function (parameter) {
+        if (parameter === 37445) return 'Intel Inc.'
+        if (parameter === 37446) return 'Intel Iris OpenGL Engine'
+        return getParameter.call(this, parameter)
+      }
+
+      Object.defineProperty(navigator, 'mediaDevices', {
+        get: () => undefined,
+      })
+    })
 
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
@@ -74,8 +88,8 @@ export async function scrapeAllWorks ({
     }[] = []
 
     while (thumbs.length < hardLimit) {
-      console.log(`➡️  Visite liste : ${currentUrl}`)
-      await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 0 })
+      console.log(`➔️  Visite liste : ${currentUrl}`)
+      await page.goto(currentUrl, { waitUntil: 'networkidle2', timeout: 60000 })
 
       const tmpDir = join('.', 'tmp')
       if (!existsSync(tmpDir)) {
@@ -86,7 +100,7 @@ export async function scrapeAllWorks ({
       console.log('📸 Screenshot saved to /tmp/page.png')
 
       try {
-        await page.waitForSelector(card, { timeout: 15_000 })
+        await page.waitForSelector(card, { timeout: 15000 })
       } catch {
         console.warn('⚠️  Aucun résultat – abandon de la page')
         break
@@ -106,7 +120,7 @@ export async function scrapeAllWorks ({
             await page.waitForFunction(
                 (sel: string, prev: number) =>
                     document.querySelectorAll(sel).length > prev,
-                { timeout: 10_000, polling: 250 },
+                { timeout: 10000, polling: 250 },
                 card,
                 before
             )
@@ -192,7 +206,6 @@ export async function scrapeAllWorks ({
 
     console.log('🏁 Scraping complet ✅')
     return final
-
   } finally {
     await browser.close()
     console.log('👋 Chromium fermé')
