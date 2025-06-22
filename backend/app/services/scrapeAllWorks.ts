@@ -2,9 +2,8 @@
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import type { Browser, Page } from 'puppeteer'
+import type { Page } from 'puppeteer'
 
 // @ts-ignore
 import puppeteerExtraImport from 'puppeteer-extra'
@@ -18,16 +17,15 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks ({
-                                        root,
-                                        listPath,
-                                        selectors,
-                                        chapterSelectors,
-                                        limit = 0,
-                                        parallelChunks = 5,
-                                      }: ScraperConfig): Promise<WorkInfo[]> {
-
-  const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
+export async function scrapeAllWorks({
+                                       root,
+                                       listPath,
+                                       selectors,
+                                       chapterSelectors,
+                                       limit = 0,
+                                       parallelChunks = 5,
+                                     }: ScraperConfig): Promise<WorkInfo[]> {
+  const hardLimit = limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
@@ -48,7 +46,6 @@ export async function scrapeAllWorks ({
       '--no-zygote',
     ],
   })
-
 
   console.log('🧭 Chromium prêt')
 
@@ -186,6 +183,17 @@ export async function scrapeAllWorks ({
 
     console.log('🏁 Scraping complet ✅')
     return final
+  } catch (error) {
+    console.error('❌ Erreur durant le scraping :', error)
+    try {
+      const page = await browser.newPage()
+      await page.goto('about:blank')
+      await page.screenshot({ path: '/tmp/scraping-error.png' })
+      console.log('🖼️ Screenshot d’erreur sauvegardé dans /tmp/scraping-error.png')
+    } catch (screenshotError) {
+      console.warn('⚠️ Impossible de prendre une capture d’écran de l’erreur', screenshotError)
+    }
+    throw error
   } finally {
     await browser.close()
     console.log('👋 Chromium fermé')
