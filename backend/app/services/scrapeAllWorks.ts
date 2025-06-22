@@ -67,7 +67,7 @@ export async function scrapeAllWorks ({
     while (thumbs.length < hardLimit) {
       console.log(`➡️  Visite liste : ${currentUrl}`)
       await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 0 })
-      await page.screenshot({ path: `/tmp/page.png`, fullPage: true })
+      await page.screenshot({ path: './tmp/page.png', fullPage: true })
       console.log('📸 Screenshot saved to /tmp/page.png')
 
       try {
