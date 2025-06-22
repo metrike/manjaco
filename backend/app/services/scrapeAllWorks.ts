@@ -1,22 +1,8 @@
-// app/services/scrapeAllWorks.ts
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
-import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-
-// @ts-ignore
-import puppeteerExtraImport from 'puppeteer-extra'
-const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
-
-// @ts-ignore
-import AnonymizeUAPlugin from 'puppeteer-extra-plugin-anonymize-ua'
-const AnonymizeUA = AnonymizeUAPlugin.default || AnonymizeUAPlugin
-
-puppeteerExtra.use(StealthPlugin())
-puppeteerExtra.use(AnonymizeUA())
-
-import type { Page } from 'puppeteer'
+import { chromium, type Page } from 'playwright'
 
 interface WorkInfo {
   title: string
@@ -39,38 +25,19 @@ export async function scrapeAllWorks({
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
-  const browser = await puppeteerExtra.launch({
-    headless: false,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--window-size=1280,800'
-    ],
+  const browser = await chromium.launch({ headless: true })
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    locale: 'fr-FR',
+    extraHTTPHeaders: {
+      'Accept-Language': 'fr-FR,fr;q=0.9',
+      'Referer': 'https://www.google.com/',
+    },
   })
-
   console.log('🧽 Chromium prêt')
 
   try {
-    const page: Page = await browser.newPage()
-
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'fr-FR,fr;q=0.9',
-      'Referer': 'https://www.google.com/',
-    })
-
-    await page.evaluateOnNewDocument(() => {
-      // @ts-ignore
-      Object.defineProperty(navigator, 'webdriver', { get: () => false })
-      // @ts-ignore
-      window.navigator.chrome = { runtime: {} }
-      // @ts-ignore
-      Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] })
-      // @ts-ignore
-      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
-    })
+    const page: Page = await context.newPage()
 
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
@@ -104,11 +71,11 @@ export async function scrapeAllWorks({
 
           try {
             await page.waitForFunction(
-              (sel: string, prev: number) => document.querySelectorAll(sel).length > prev,
-              { timeout: 10000 },
-              card,
-              before
+              ([sel, prev]) => document.querySelectorAll(sel).length > Number(prev),
+              [card, before]  // <-- C'EST ICI QU'IL FAUT LE METTRE
             )
+
+
           } catch {
             break
           }

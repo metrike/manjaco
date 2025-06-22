@@ -26,49 +26,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: 🧱 Install Chromium & Xvfb dependencies
+      - name: 🧱 Install Playwright
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            chromium-browser \
-            xvfb \
-            libgtk-3-0 \
-            libxss1 \
-            libnss3 \
-            libx11-xcb1 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            x11-utils \
-            fonts-liberation \
-            libappindicator3-1 \
-            libatk-bridge2.0-0 \
-            libatk1.0-0 \
-            libcups2 \
-            libdbus-1-3 \
-            libgdk-pixbuf2.0-0 \
-            libnspr4 \
-            xdg-utils \
-            libu2f-udev \
-            libvulkan1 \
-            libasound2t64
-
-      - name: 📦 Install dependencies
-        run: npm install
+          npm install
+          npx playwright install --with-deps
 
       - name: ⚙️ Build project (si nécessaire)
         run: node ace build --ignore-ts-errors
 
-      - name: 🗄️ Run Adonis Seeder via Xvfb
+      - name: 🔴 Run Adonis Seeder
         env:
-          DISPLAY: ":99"
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NODE_ENV: development
           APP_KEY: ${{ secrets.APP_KEY }}
           LOG_LEVEL: info
         run: |
-          xvfb-run --server-args="-screen 0 1024x768x24" node ace db:seed --files "database/seeders/scrap_manga_seeder"
+          node ace db:seed --files "database/seeders/scrap_manga_seeder"
 
       - name: 📸 Upload screenshot for debug (si scraping échoue)
         if: always()
