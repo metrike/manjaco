@@ -1,9 +1,11 @@
 // app/services/scrapeAllWorks.ts
-import puppeteer, { Browser, Page } from 'puppeteer'
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import type { Browser, Page } from 'puppeteer'
+import puppeteerExtra from 'puppeteer-extra'
 
 interface WorkInfo {
   title: string
@@ -34,16 +36,11 @@ export async function scrapeAllWorks ({
     nextPage,
   }: ListPageSelectors = selectors
 
-  const browser = await puppeteer.launch({
-    headless: 'new', // 'new' ou true selon la version
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--window-size=1920x1080',
-    ],
+  puppeteerExtra.use(StealthPlugin())
+
+  const browser = await puppeteerExtra.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
 
 

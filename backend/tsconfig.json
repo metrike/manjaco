@@ -5,6 +5,8 @@
     "outDir": "./build",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "lib": ["esnext", "dom"]
+    "lib": ["esnext", "dom"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }
