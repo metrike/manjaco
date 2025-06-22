@@ -49,6 +49,7 @@ export async function scrapeAllWorks ({
       '--disable-gpu',
       '--disable-dev-shm-usage',
       '--disable-software-rasterizer',
+      '--proxy-server=http://168.138.211.5:8080'
     ],
   })
 
