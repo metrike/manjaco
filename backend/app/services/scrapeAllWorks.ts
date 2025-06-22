@@ -5,8 +5,9 @@ import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import type { Browser, Page } from 'puppeteer'
+import puppeteer from 'puppeteer'
 
-// @ts-ignore
+// @ts-ignore: pour forcer l'import en default
 import puppeteerExtraImport from 'puppeteer-extra'
 const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
 
@@ -18,61 +19,85 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks ({
-                                        root,
-                                        listPath,
-                                        selectors,
-                                        chapterSelectors,
-                                        limit = 0,
-                                        parallelChunks = 5,
-                                      }: ScraperConfig): Promise<WorkInfo[]> {
-
+export async function scrapeAllWorks({
+                                       root,
+                                       listPath,
+                                       selectors,
+                                       chapterSelectors,
+                                       limit = 0,
+                                       parallelChunks = 5,
+                                     }: ScraperConfig): Promise<WorkInfo[]> {
   const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
-  const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
+  const {
+    card,
+    link,
+    title: titleSel,
+    img: imgSel,
+    loadMore,
+    nextPage,
+  }: ListPageSelectors = selectors
 
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: false, // mettre `true` si vraiment nécessaire
+    headless: 'new',
+    executablePath: puppeteer.executablePath(), // ← CECI résout le problème
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
-      '--window-size=1280,800',
+      '--disable-software-rasterizer',
     ],
   })
 
-  console.log('🧭 Chromium prêt')
+  console.log('🧽 Chromium prêt')
 
   try {
     const page: Page = await browser.newPage()
 
-    // 🧠 Anti-bot : userAgent + headers + navigator overrides
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+    )
+
     await page.setExtraHTTPHeaders({
-      'Accept-Language': 'fr-FR,fr;q=0.9',
-      'Referer': 'https://www.google.com/',
+      'accept-language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
     })
 
     await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => false })
-      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
-      Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] })
+      const getParameter = WebGLRenderingContext.prototype.getParameter
+      WebGLRenderingContext.prototype.getParameter = function (parameter) {
+        if (parameter === 37445) return 'Intel Inc.'
+        if (parameter === 37446) return 'Intel Iris OpenGL Engine'
+        return getParameter.call(this, parameter)
+      }
+
+      Object.defineProperty(navigator, 'mediaDevices', {
+        get: () => undefined,
+      })
     })
 
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
 
-    const thumbs: WorkInfo[] = []
+    const thumbs: {
+      title: string
+      sourceUrl: string
+      coverUrl: string | null
+      latestText: string
+    }[] = []
 
     while (thumbs.length < hardLimit) {
-      console.log(`➡️  Visite liste : ${currentUrl}`)
-      await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
+      console.log(`➔️  Visite liste : ${currentUrl}`)
+      await page.goto(currentUrl, { waitUntil: 'networkidle2', timeout: 60000 })
 
-      if (!existsSync('./tmp')) mkdirSync('./tmp')
+      const tmpDir = join('.', 'tmp')
+      if (!existsSync(tmpDir)) {
+        mkdirSync(tmpDir)
+      }
+
       await page.screenshot({ path: '/tmp/page.png', fullPage: true })
       console.log('📸 Screenshot saved to /tmp/page.png')
 
@@ -95,8 +120,9 @@ export async function scrapeAllWorks ({
 
           try {
             await page.waitForFunction(
-              (sel: string, prev: number) => document.querySelectorAll(sel).length > prev,
-              { timeout: 10000 },
+              (sel: string, prev: number) =>
+                document.querySelectorAll(sel).length > prev,
+              { timeout: 10000, polling: 250 },
               card,
               before
             )
@@ -134,7 +160,7 @@ export async function scrapeAllWorks ({
           !thumbs.find(t => t.sourceUrl === w.sourceUrl) &&
           thumbs.length < hardLimit
         ) {
-          thumbs.push(w as WorkInfo)
+          thumbs.push(w)
         }
       }
       console.log(`📊 Total : ${thumbs.length}/${hardLimit}`)
