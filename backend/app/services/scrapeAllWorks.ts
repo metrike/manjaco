@@ -31,12 +31,12 @@ export async function scrapeAllWorks({
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
-  puppeteerExtra.use(StealthPlugin())
+  // puppeteerExtra.use(StealthPlugin())
 
 
-  const browser = await puppeteerExtra.launch({
+  const browser = await puppeteerExtra.use(StealthPlugin()).launch({
     headless: true,
-    executablePath: puppeteer.executablePath(), // ⬅️ CHEMIN DU CHROMIUM FOURNI PAR puppeteer
+    executablePath: puppeteer.executablePath(), // ← CHEMIN CORRECT
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
