@@ -1,6 +1,8 @@
-name: Run Seeder
+name: Run Scraping Manga Seeder
 
 on:
+  schedule:
+    - cron: '0 6 * * *'  # Tous les jours à 8h (heure de Paris)
   workflow_dispatch:
   push:
     branches:
