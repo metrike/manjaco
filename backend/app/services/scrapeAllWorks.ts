@@ -34,21 +34,23 @@ export async function scrapeAllWorks({
   // puppeteerExtra.use(StealthPlugin())
 
 
-  const browser = await puppeteerExtra.use(StealthPlugin()).launch({
-    headless: true,
-    executablePath: puppeteer.executablePath(), // ← CHEMIN CORRECT
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--window-size=1280,800',
-      '--single-process',
-      '--no-zygote',
-    ],
-  })
+  const browser = await puppeteerExtra
+    .use(StealthPlugin())
+    .launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--window-size=1280,800',
+        '--single-process',
+        '--no-zygote',
+      ],
+    });
+
 
   console.log('🧭 Chromium prêt')
 
