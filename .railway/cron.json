@@ -1,6 +1,0 @@
-[
-  {
-    "schedule": "0 6 * * *",
-    "command": "node build/ace.js db:seed --files \"database/seeders/scrap_manga_seeder\" || (echo \"❌ Erreur pendant le scraping. Capture...\" && cp /tmp/page.png ./page-fail-$(date +%s).png)\n"
-  }
-]

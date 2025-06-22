@@ -2,9 +2,9 @@
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
+import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import type { Page } from 'puppeteer'
-import puppeteer from 'puppeteer'
+import type { Browser, Page } from 'puppeteer'
 
 // @ts-ignore
 import puppeteerExtraImport from 'puppeteer-extra'
@@ -18,45 +18,39 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks({
-                                       root,
-                                       listPath,
-                                       selectors,
-                                       chapterSelectors,
-                                       limit = 0,
-                                       parallelChunks = 5,
-                                     }: ScraperConfig): Promise<WorkInfo[]> {
-  const hardLimit = limit > 0 ? limit : Number.POSITIVE_INFINITY
+export async function scrapeAllWorks ({
+                                        root,
+                                        listPath,
+                                        selectors,
+                                        chapterSelectors,
+                                        limit = 0,
+                                        parallelChunks = 5,
+                                      }: ScraperConfig): Promise<WorkInfo[]> {
+
+  const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
-  // puppeteerExtra.use(StealthPlugin())
+  puppeteerExtra.use(StealthPlugin())
 
-
-  const browser = await puppeteerExtra
-    .use(StealthPlugin())
-    .launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-features=IsolateOrigins,site-per-process',
-        '--window-size=1280,800',
-        '--single-process',
-        '--no-zygote',
-      ],
-    });
-
+  const browser = await puppeteerExtra.launch({
+    headless: false, // mettre `true` si vraiment nécessaire
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+      '--window-size=1280,800',
+    ],
+  })
 
   console.log('🧭 Chromium prêt')
 
   try {
     const page: Page = await browser.newPage()
 
+    // 🧠 Anti-bot : userAgent + headers + navigator overrides
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'fr-FR,fr;q=0.9',
@@ -188,17 +182,6 @@ export async function scrapeAllWorks({
 
     console.log('🏁 Scraping complet ✅')
     return final
-  } catch (error) {
-    console.error('❌ Erreur durant le scraping :', error)
-    try {
-      const page = await browser.newPage()
-      await page.goto('about:blank')
-      await page.screenshot({ path: '/tmp/scraping-error.png' })
-      console.log('🖼️ Screenshot d’erreur sauvegardé dans /tmp/scraping-error.png')
-    } catch (screenshotError) {
-      console.warn('⚠️ Impossible de prendre une capture d’écran de l’erreur', screenshotError)
-    }
-    throw error
   } finally {
     await browser.close()
     console.log('👋 Chromium fermé')
