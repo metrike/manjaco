@@ -1,8 +1,14 @@
+// app/services/scrapeAllWorks.ts
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
-import { chromium, type Page } from 'playwright'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import type { Browser, Page } from 'puppeteer'
+
+// @ts-ignore
+import puppeteerExtraImport from 'puppeteer-extra'
+const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
 
 interface WorkInfo {
   title: string
@@ -12,32 +18,50 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks({
-                                       root,
-                                       listPath,
-                                       selectors,
-                                       chapterSelectors,
-                                       limit = 0,
-                                       parallelChunks = 5,
-                                     }: ScraperConfig): Promise<WorkInfo[]> {
+export async function scrapeAllWorks ({
+                                        root,
+                                        listPath,
+                                        selectors,
+                                        chapterSelectors,
+                                        limit = 0,
+                                        parallelChunks = 5,
+                                      }: ScraperConfig): Promise<WorkInfo[]> {
+
   const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
-  const browser = await chromium.launch({ headless: true })
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-    locale: 'fr-FR',
-    extraHTTPHeaders: {
-      'Accept-Language': 'fr-FR,fr;q=0.9',
-      'Referer': 'https://www.google.com/',
-    },
+  puppeteerExtra.use(StealthPlugin())
+
+  const browser = await puppeteerExtra.launch({
+    headless: false, // mettre `true` si vraiment nécessaire
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+      '--window-size=1280,800',
+    ],
   })
-  console.log('🧽 Chromium prêt')
+
+  console.log('🧭 Chromium prêt')
 
   try {
-    const page: Page = await context.newPage()
+    const page: Page = await browser.newPage()
+
+    // 🧠 Anti-bot : userAgent + headers + navigator overrides
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'fr-FR,fr;q=0.9',
+      'Referer': 'https://www.google.com/',
+    })
+
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => false })
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
+      Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] })
+    })
 
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
@@ -45,12 +69,12 @@ export async function scrapeAllWorks({
     const thumbs: WorkInfo[] = []
 
     while (thumbs.length < hardLimit) {
-      console.log(`➔  Visite liste : ${currentUrl}`)
+      console.log(`➡️  Visite liste : ${currentUrl}`)
       await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
 
       if (!existsSync('./tmp')) mkdirSync('./tmp')
       await page.screenshot({ path: '/tmp/page.png', fullPage: true })
-      console.log('🗼 Screenshot saved to /tmp/page.png')
+      console.log('📸 Screenshot saved to /tmp/page.png')
 
       try {
         await page.waitForSelector(card, { timeout: 15000 })
@@ -71,11 +95,11 @@ export async function scrapeAllWorks({
 
           try {
             await page.waitForFunction(
-              ([sel, prev]) => document.querySelectorAll(sel).length > Number(prev),
-              [card, before]  // <-- C'EST ICI QU'IL FAUT LE METTRE
+              (sel: string, prev: number) => document.querySelectorAll(sel).length > prev,
+              { timeout: 10000 },
+              card,
+              before
             )
-
-
           } catch {
             break
           }
@@ -160,6 +184,6 @@ export async function scrapeAllWorks({
     return final
   } finally {
     await browser.close()
-    console.log('💋 Chromium fermé')
+    console.log('👋 Chromium fermé')
   }
 }
