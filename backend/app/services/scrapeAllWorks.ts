@@ -2,6 +2,9 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
+import {existsSync} from "node:fs";
+import { mkdirSync, existsSync } from 'fs'
+import { join } from 'path'
 
 interface WorkInfo {
   title: string
@@ -67,7 +70,13 @@ export async function scrapeAllWorks ({
     while (thumbs.length < hardLimit) {
       console.log(`➡️  Visite liste : ${currentUrl}`)
       await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 0 })
-      await page.screenshot({ path: './tmp/page.png', fullPage: true })
+
+      const tmpDir = join('.', 'tmp')
+      if (!existsSync(tmpDir)) {
+        mkdirSync(tmpDir)
+      }
+
+      await page.screenshot({ path: '/tmp/page.png', fullPage: true })
       console.log('📸 Screenshot saved to /tmp/page.png')
 
       try {
