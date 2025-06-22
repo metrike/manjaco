@@ -5,7 +5,10 @@ import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import type { Browser, Page } from 'puppeteer'
-import puppeteerExtra from 'puppeteer-extra'
+
+// @ts-ignore: pour forcer l'import en default
+import puppeteerExtraImport from 'puppeteer-extra'
+const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
 
 interface WorkInfo {
   title: string
