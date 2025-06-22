@@ -6,7 +6,7 @@ import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import type { Browser, Page } from 'puppeteer'
 
-// @ts-ignore: pour forcer l'import en default
+// @ts-ignore
 import puppeteerExtraImport from 'puppeteer-extra'
 const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
 
@@ -18,84 +18,61 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks({
-                                       root,
-                                       listPath,
-                                       selectors,
-                                       chapterSelectors,
-                                       limit = 0,
-                                       parallelChunks = 5,
-                                     }: ScraperConfig): Promise<WorkInfo[]> {
+export async function scrapeAllWorks ({
+                                        root,
+                                        listPath,
+                                        selectors,
+                                        chapterSelectors,
+                                        limit = 0,
+                                        parallelChunks = 5,
+                                      }: ScraperConfig): Promise<WorkInfo[]> {
+
   const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
-  const {
-    card,
-    link,
-    title: titleSel,
-    img: imgSel,
-    loadMore,
-    nextPage,
-  }: ListPageSelectors = selectors
+  const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: 'new',
+    headless: false, // mettre `true` si vraiment nécessaire
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
-      '--disable-software-rasterizer',
+      '--window-size=1280,800',
     ],
   })
 
-  console.log('🧽 Chromium prêt')
+  console.log('🧭 Chromium prêt')
 
   try {
     const page: Page = await browser.newPage()
 
-    await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-    )
-
+    // 🧠 Anti-bot : userAgent + headers + navigator overrides
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
     await page.setExtraHTTPHeaders({
-      'accept-language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
+      'Accept-Language': 'fr-FR,fr;q=0.9',
+      'Referer': 'https://www.google.com/',
     })
 
     await page.evaluateOnNewDocument(() => {
-      const getParameter = WebGLRenderingContext.prototype.getParameter
-      WebGLRenderingContext.prototype.getParameter = function (parameter) {
-        if (parameter === 37445) return 'Intel Inc.'
-        if (parameter === 37446) return 'Intel Iris OpenGL Engine'
-        return getParameter.call(this, parameter)
-      }
-
-      Object.defineProperty(navigator, 'mediaDevices', {
-        get: () => undefined,
-      })
+      Object.defineProperty(navigator, 'webdriver', { get: () => false })
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
+      Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] })
     })
 
     const base = root.replace(/\/$/, '')
     let currentUrl = `${base}${listPath.startsWith('/') ? '' : '/'}${listPath}`
 
-    const thumbs: {
-      title: string
-      sourceUrl: string
-      coverUrl: string | null
-      latestText: string
-    }[] = []
+    const thumbs: WorkInfo[] = []
 
     while (thumbs.length < hardLimit) {
-      console.log(`➔️  Visite liste : ${currentUrl}`)
-      await page.goto(currentUrl, { waitUntil: 'networkidle2', timeout: 60000 })
+      console.log(`➡️  Visite liste : ${currentUrl}`)
+      await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
 
-      const tmpDir = join('.', 'tmp')
-      if (!existsSync(tmpDir)) {
-        mkdirSync(tmpDir)
-      }
-
+      if (!existsSync('./tmp')) mkdirSync('./tmp')
       await page.screenshot({ path: '/tmp/page.png', fullPage: true })
       console.log('📸 Screenshot saved to /tmp/page.png')
 
@@ -118,11 +95,10 @@ export async function scrapeAllWorks({
 
           try {
             await page.waitForFunction(
-                (sel: string, prev: number) =>
-                    document.querySelectorAll(sel).length > prev,
-                { timeout: 10000, polling: 250 },
-                card,
-                before
+              (sel: string, prev: number) => document.querySelectorAll(sel).length > prev,
+              { timeout: 10000 },
+              card,
+              before
             )
           } catch {
             break
@@ -132,33 +108,33 @@ export async function scrapeAllWorks({
       }
 
       const pageWorks = await page.$$eval(
-          `${card} ${link}`,
-          (anchors, { card, titleSel, imgSel, latestSel }) =>
-              anchors.map((a) => {
-                const cardEl = (a as any).closest(card)!
-                const titleEl = titleSel ? cardEl.querySelector(titleSel) : a
-                const imgEl = imgSel ? cardEl.querySelector(imgSel) : null
-                const latestEl = latestSel ? cardEl.querySelector(latestSel) : null
+        `${card} ${link}`,
+        (anchors, { card, titleSel, imgSel, latestSel }) =>
+          anchors.map((a) => {
+            const cardEl = (a as any).closest(card)!
+            const titleEl = titleSel ? cardEl.querySelector(titleSel) : a
+            const imgEl = imgSel ? cardEl.querySelector(imgSel) : null
+            const latestEl = latestSel ? cardEl.querySelector(latestSel) : null
 
-                return {
-                  title: titleEl?.textContent?.trim() ?? '',
-                  sourceUrl: (a as any).href,
-                  coverUrl: imgEl?.getAttribute('data-src') || imgEl?.src || null,
-                  latestText: latestEl?.textContent ?? '',
-                }
-              }),
-          { card, titleSel, imgSel, latestSel: selectors.latestChapter }
+            return {
+              title: titleEl?.textContent?.trim() ?? '',
+              sourceUrl: (a as any).href,
+              coverUrl: imgEl?.getAttribute('data-src') || imgEl?.src || null,
+              latestText: latestEl?.textContent ?? '',
+            }
+          }),
+        { card, titleSel, imgSel, latestSel: selectors.latestChapter }
       )
 
       console.log(`   ↳ ${pageWorks.length} série(s) trouvée(s)`)
 
       for (const w of pageWorks) {
         if (
-            w.sourceUrl &&
-            !thumbs.find(t => t.sourceUrl === w.sourceUrl) &&
-            thumbs.length < hardLimit
+          w.sourceUrl &&
+          !thumbs.find(t => t.sourceUrl === w.sourceUrl) &&
+          thumbs.length < hardLimit
         ) {
-          thumbs.push(w)
+          thumbs.push(w as WorkInfo)
         }
       }
       console.log(`📊 Total : ${thumbs.length}/${hardLimit}`)
@@ -179,23 +155,23 @@ export async function scrapeAllWorks({
       console.log(`🔄 Batch chapitres ${i + 1}-${i + batch.length}`)
 
       const counts = await Promise.all(
-          batch.map(async (w) => {
-            const quickMatch = w.latestText?.match(/\bchap(?:itre)?\s*(\d+)/i)
-            if (quickMatch) {
-              const quickCount = Number(quickMatch[1])
-              console.log(`   • ${w.title} (quick) → ${quickCount}`)
-              return quickCount
-            }
+        batch.map(async (w) => {
+          const quickMatch = w.latestText?.match(/\bchap(?:itre)?\s*(\d+)/i)
+          if (quickMatch) {
+            const quickCount = Number(quickMatch[1])
+            console.log(`   • ${w.title} (quick) → ${quickCount}`)
+            return quickCount
+          }
 
-            try {
-              return await scrapeChapterCount({
-                url: w.sourceUrl,
-                selectors: chapterSelectors,
-              })
-            } catch {
-              return 0
-            }
-          })
+          try {
+            return await scrapeChapterCount({
+              url: w.sourceUrl,
+              selectors: chapterSelectors,
+            })
+          } catch {
+            return 0
+          }
+        })
       )
 
       batch.forEach((w, idx) => {
