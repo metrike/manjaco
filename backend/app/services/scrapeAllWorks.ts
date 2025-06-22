@@ -36,7 +36,6 @@ export async function scrapeAllWorks ({
 
   const browser = await puppeteerExtra.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -49,6 +48,7 @@ export async function scrapeAllWorks ({
       '--no-zygote',
     ],
   })
+
 
   console.log('🧭 Chromium prêt')
 
