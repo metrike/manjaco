@@ -42,8 +42,14 @@ export async function scrapeAllWorks ({
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: false,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: 'new',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
+      '--disable-software-rasterizer',
+    ],
   })
 
 
