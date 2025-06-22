@@ -2,7 +2,6 @@
 import puppeteer, { Browser, Page } from 'puppeteer'
 import { scrapeChapterCount } from './scrapeChapterCount.js'
 import { ScraperConfig, ListPageSelectors } from '#types/scraper'
-import {existsSync} from "node:fs";
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 
