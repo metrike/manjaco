@@ -42,7 +42,7 @@ export async function scrapeAllWorks ({
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
 
