@@ -5,7 +5,7 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "postinstall": "node ace build",
+    "postinstall": "puppeteer install",
     "start": "node bin/server.js",
     "build": "node ace build",
     "dev": "node ace serve --hmr",

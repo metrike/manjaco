@@ -4,6 +4,7 @@ import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import type { Page } from 'puppeteer'
+import puppeteer from 'puppeteer'
 
 // @ts-ignore
 import puppeteerExtraImport from 'puppeteer-extra'
@@ -32,8 +33,10 @@ export async function scrapeAllWorks({
 
   puppeteerExtra.use(StealthPlugin())
 
+
   const browser = await puppeteerExtra.launch({
     headless: true,
+    executablePath: puppeteer.executablePath(), // ⬅️ CHEMIN DU CHROMIUM FOURNI PAR puppeteer
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
