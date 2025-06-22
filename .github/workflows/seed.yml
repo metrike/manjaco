@@ -1,80 +1,80 @@
-name: Run Scraping Manga Seeder
-
-on:
-  schedule:
-    - cron: '0 6 * * *'  # Tous les jours à 8h (heure de Paris)
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - '.github/workflows/seed.yml'
-
-jobs:
-  seed:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: ⬇️ Checkout repository
-        uses: actions/checkout@v3
-
-      - name: ⚙️ Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: 🧱 Install Chromium & Xvfb dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            chromium-browser \
-            xvfb \
-            libgtk-3-0 \
-            libxss1 \
-            libnss3 \
-            libx11-xcb1 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libgbm1 \
-            x11-utils \
-            fonts-liberation \
-            libappindicator3-1 \
-            libatk-bridge2.0-0 \
-            libatk1.0-0 \
-            libcups2 \
-            libdbus-1-3 \
-            libgdk-pixbuf2.0-0 \
-            libnspr4 \
-            xdg-utils \
-            libu2f-udev \
-            libvulkan1 \
-            libasound2t64
-
-      - name: 📦 Install dependencies
-        run: npm install
-
-      - name: ⚙️ Build project (si nécessaire)
-        run: node ace build --ignore-ts-errors
-
-      - name: 🗄️ Run Adonis Seeder via Xvfb
-        env:
-          DISPLAY: ":99"
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NODE_ENV: development
-          APP_KEY: ${{ secrets.APP_KEY }}
-          LOG_LEVEL: info
-        run: |
-          xvfb-run --server-args="-screen 0 1024x768x24" node ace db:seed --files "database/seeders/scrap_manga_seeder"
-
-      - name: 📸 Upload screenshot for debug (si scraping échoue)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-screenshot
-          path: /tmp/page.png
+#name: Run Scraping Manga Seeder
+#
+#on:
+#  schedule:
+#    - cron: '0 6 * * *'  # Tous les jours à 8h (heure de Paris)
+#  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+#    paths:
+#      - 'backend/**'
+#      - '.github/workflows/seed.yml'
+#
+#jobs:
+#  seed:
+#    runs-on: ubuntu-latest
+#
+#    defaults:
+#      run:
+#        working-directory: backend
+#
+#    steps:
+#      - name: ⬇️ Checkout repository
+#        uses: actions/checkout@v3
+#
+#      - name: ⚙️ Setup Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 20
+#
+#      - name: 🧱 Install Chromium & Xvfb dependencies
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y \
+#            chromium-browser \
+#            xvfb \
+#            libgtk-3-0 \
+#            libxss1 \
+#            libnss3 \
+#            libx11-xcb1 \
+#            libxcomposite1 \
+#            libxdamage1 \
+#            libxrandr2 \
+#            libgbm1 \
+#            x11-utils \
+#            fonts-liberation \
+#            libappindicator3-1 \
+#            libatk-bridge2.0-0 \
+#            libatk1.0-0 \
+#            libcups2 \
+#            libdbus-1-3 \
+#            libgdk-pixbuf2.0-0 \
+#            libnspr4 \
+#            xdg-utils \
+#            libu2f-udev \
+#            libvulkan1 \
+#            libasound2t64
+#
+#      - name: 📦 Install dependencies
+#        run: npm install
+#
+#      - name: ⚙️ Build project (si nécessaire)
+#        run: node ace build --ignore-ts-errors
+#
+#      - name: 🗄️ Run Adonis Seeder via Xvfb
+#        env:
+#          DISPLAY: ":99"
+#          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+#          NODE_ENV: development
+#          APP_KEY: ${{ secrets.APP_KEY }}
+#          LOG_LEVEL: info
+#        run: |
+#          xvfb-run --server-args="-screen 0 1024x768x24" node ace db:seed --files "database/seeders/scrap_manga_seeder"
+#
+#      - name: 📸 Upload screenshot for debug (si scraping échoue)
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: debug-screenshot
+#          path: /tmp/page.png

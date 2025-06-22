@@ -35,13 +35,18 @@ export async function scrapeAllWorks ({
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: false, // mettre `true` si vraiment nécessaire
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-features=IsolateOrigins,site-per-process',
       '--window-size=1280,800',
+      '--single-process',
+      '--no-zygote',
     ],
   })
 
@@ -50,7 +55,6 @@ export async function scrapeAllWorks ({
   try {
     const page: Page = await browser.newPage()
 
-    // 🧠 Anti-bot : userAgent + headers + navigator overrides
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'fr-FR,fr;q=0.9',
