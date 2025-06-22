@@ -4,11 +4,19 @@ import { ScraperConfig, ListPageSelectors } from '#types/scraper'
 import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import type { Browser, Page } from 'puppeteer'
 
 // @ts-ignore
 import puppeteerExtraImport from 'puppeteer-extra'
 const puppeteerExtra = puppeteerExtraImport.default || puppeteerExtraImport
+
+// @ts-ignore
+import AnonymizeUAPlugin from 'puppeteer-extra-plugin-anonymize-ua'
+const AnonymizeUA = AnonymizeUAPlugin.default || AnonymizeUAPlugin
+
+puppeteerExtra.use(StealthPlugin())
+puppeteerExtra.use(AnonymizeUA())
+
+import type { Page } from 'puppeteer'
 
 interface WorkInfo {
   title: string
@@ -18,39 +26,35 @@ interface WorkInfo {
   latestText?: string
 }
 
-export async function scrapeAllWorks ({
-                                        root,
-                                        listPath,
-                                        selectors,
-                                        chapterSelectors,
-                                        limit = 0,
-                                        parallelChunks = 5,
-                                      }: ScraperConfig): Promise<WorkInfo[]> {
-
+export async function scrapeAllWorks({
+                                       root,
+                                       listPath,
+                                       selectors,
+                                       chapterSelectors,
+                                       limit = 0,
+                                       parallelChunks = 5,
+                                     }: ScraperConfig): Promise<WorkInfo[]> {
   const hardLimit = limit && limit > 0 ? limit : Number.POSITIVE_INFINITY
   console.log(`🚀 scrapeAllWorks – limit = ${hardLimit}`)
 
   const { card, link, title: titleSel, img: imgSel, loadMore, nextPage }: ListPageSelectors = selectors
 
-  puppeteerExtra.use(StealthPlugin())
-
   const browser = await puppeteerExtra.launch({
-    headless: false, // mettre `true` si vraiment nécessaire
+    headless: false,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-gpu',
       '--disable-dev-shm-usage',
-      '--window-size=1280,800',
+      '--window-size=1280,800'
     ],
   })
 
-  console.log('🧭 Chromium prêt')
+  console.log('🧽 Chromium prêt')
 
   try {
     const page: Page = await browser.newPage()
 
-    // 🧠 Anti-bot : userAgent + headers + navigator overrides
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36')
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'fr-FR,fr;q=0.9',
@@ -58,9 +62,14 @@ export async function scrapeAllWorks ({
     })
 
     await page.evaluateOnNewDocument(() => {
+      // @ts-ignore
       Object.defineProperty(navigator, 'webdriver', { get: () => false })
-      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
+      // @ts-ignore
+      window.navigator.chrome = { runtime: {} }
+      // @ts-ignore
       Object.defineProperty(navigator, 'languages', { get: () => ['fr-FR', 'fr'] })
+      // @ts-ignore
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
     })
 
     const base = root.replace(/\/$/, '')
@@ -69,12 +78,12 @@ export async function scrapeAllWorks ({
     const thumbs: WorkInfo[] = []
 
     while (thumbs.length < hardLimit) {
-      console.log(`➡️  Visite liste : ${currentUrl}`)
+      console.log(`➔  Visite liste : ${currentUrl}`)
       await page.goto(currentUrl, { waitUntil: 'domcontentloaded', timeout: 60000 })
 
       if (!existsSync('./tmp')) mkdirSync('./tmp')
       await page.screenshot({ path: '/tmp/page.png', fullPage: true })
-      console.log('📸 Screenshot saved to /tmp/page.png')
+      console.log('🗼 Screenshot saved to /tmp/page.png')
 
       try {
         await page.waitForSelector(card, { timeout: 15000 })
@@ -184,6 +193,6 @@ export async function scrapeAllWorks ({
     return final
   } finally {
     await browser.close()
-    console.log('👋 Chromium fermé')
+    console.log('💋 Chromium fermé')
   }
 }
