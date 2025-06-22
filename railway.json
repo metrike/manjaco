@@ -1,5 +1,7 @@
 {
-  "build": {
-    "root": "backend"
-  }
+  "build": [
+    "cd backend && npm install",
+    "cd backend && node ace build"
+  ],
+  "start": "cd backend/build && node ace.js db:seed --files database/seeders/scrap_manga_seeder"
 }
