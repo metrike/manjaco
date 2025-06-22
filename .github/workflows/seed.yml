@@ -1,12 +1,12 @@
 name: Run Seeder
 
 on:
-  workflow_dispatch:  # Permet de lancer manuellement depuis l’onglet Actions
+  workflow_dispatch:
   push:
     branches:
-      - main           # ou 'master' selon ta branche principale
+      - main
     paths:
-      - 'backend/**'   # Se déclenche si des fichiers dans backend changent
+      - 'backend/**'
       - '.github/workflows/seed.yml'
 
 jobs:
@@ -33,7 +33,6 @@ jobs:
             ca-certificates \
             fonts-liberation \
             libappindicator3-1 \
-            libasound2 \
             libatk-bridge2.0-0 \
             libatk1.0-0 \
             libcups2 \
@@ -48,7 +47,8 @@ jobs:
             xdg-utils \
             libu2f-udev \
             libvulkan1 \
-            libgbm1
+            libgbm1 \
+            libasound2t64 # ✅ nouveau nom correct
 
       - name: 📦 Install dependencies
         run: npm install
