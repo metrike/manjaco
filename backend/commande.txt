@@ -5,3 +5,17 @@
 -  node ace make:controller NomController
 -  node ace make:migration
 -  node ace make:seeder scrap_manga
+
+ssh-copy-id root@163.172.176.168
+mv /root/manjaco /home/manjaco/
+chown -R manjaco:manjaco /home/manjaco/manjaco
+node ace db:seed --files "database/seeders/scrap_manga_seeder"
+ssh root@163.172.176.168
+cd /home/manjaco
+su - manjaco
+setxkbmap fr
+chmod +x /tmp/chromium
+/tmp/chromium --no-sandbox --headless --disable-gpu --remote-debugging-port=9222 https://example.com
+/tmp/chromium --no-sandbox --headless --disable-gpu --remote-debugging-port=9222 &
+
+/root/.local/bin/protonvpn init
