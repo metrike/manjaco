@@ -7,7 +7,7 @@ import fs from 'fs'
 
 export default class DuckduckgoCoverSeeder extends BaseSeeder {
   public async run() {
-    const works = await Work.query().limit(5)
+    const works = await Work.query()
     const browser = await puppeteer.launch({
       headless: 'new', // ou false si 'new' ne marche pas
       // executablePath: '/opt/homebrew/bin/chromium',
