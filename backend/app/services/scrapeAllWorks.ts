@@ -43,7 +43,7 @@ export async function scrapeAllWorks({
 
   const browser = await puppeteerExtra.launch({
     headless: 'new',
-    executablePath: puppeteer.executablePath(), // ← CECI résout le problème
+    executablePath: '/opt/homebrew/bin/chromium', // 👈 Ajout important
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
