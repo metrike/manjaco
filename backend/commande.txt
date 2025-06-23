@@ -6,10 +6,10 @@
 -  node ace make:migration
 -  node ace make:seeder scrap_manga
 
-ssh-copy-id root@163.172.176.168
 mv /root/manjaco /home/manjaco/
 chown -R manjaco:manjaco /home/manjaco/manjaco
 node ace db:seed --files "database/seeders/scrap_manga_seeder"
+ssh-copy-id root@163.172.176.168
 ssh root@163.172.176.168
 cd /home/manjaco
 su - manjaco
@@ -22,3 +22,5 @@ sudo crontab -e
 /root/.local/bin/protonvpn init
 vim /root/manjaco/run_scraper.sh
 crontab -e
+
+nohup node ace db:seed --files "database/seeders/duckduckgo_cover_seeder.ts" > seed.log 2>&1 &
