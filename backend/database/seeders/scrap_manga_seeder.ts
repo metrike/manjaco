@@ -62,8 +62,15 @@ export default class WorkSeeder extends BaseSeeder {
       })
 
       const $ = cheerio.load(data)
-      const chapters = $('#chapter .row')
-      return chapters.length
+
+      const firstChapterText = $('#chapter .row a').first().text().trim()
+      const match = firstChapterText.match(/Chapter (\d+(?:\.\d+)?)/i)
+
+      if (match) {
+        return Math.floor(parseFloat(match[1])) // Ignore les .1, .2 etc.
+      }
+
+      return 0
     } catch (err) {
       console.error(`❌ Erreur scraping chapitres de ${url}:`, err.message)
       return 0
@@ -74,39 +81,54 @@ export default class WorkSeeder extends BaseSeeder {
     const site = await Website.findByOrFail('name', 'Mangakakalot')
     console.log(`🔍 Scraping depuis ${site.name}...`)
 
-    const allResults: { title: string, link: string, cover: string | null }[] = []
+    let page = 1
+    let totalScraped = 0
 
-    for (let page = 1; page <= 1; page++) {
+    while (true) {
       console.log(`🔄 Scraping page ${page}`)
       const mangas = await this.scrapeMangaListWithRetry(page)
-      allResults.push(...mangas)
 
+      if (mangas.length === 0) {
+        console.log(`✅ Fin du scraping : aucune œuvre à la page ${page}`)
+        break
+      }
+
+      totalScraped += mangas.length
+      console.log(`📦 ${mangas.length} œuvres trouvées à la page ${page}`)
+
+      for (const manga of mangas) {
+        const totalChapters = await this.getChapterCount(manga.link)
+        console.log(`📚 ${manga.title} → ${totalChapters} chapitres`)
+
+        const existingWork = await Work.findBy('sourceUrl', manga.link)
+
+        if (existingWork) {
+          existingWork.totalChapters = totalChapters
+          existingWork.lastScrapedAt = DateTime.now()
+          await existingWork.save()
+          console.log(`🔄 Mise à jour : ${manga.title}`)
+        } else {
+          await Work.create({
+            title: manga.title,
+            sourceUrl: manga.link,
+            coverUrl: manga.cover || '',
+            totalChapters,
+            type: 'MANGA',
+            lastScrapedAt: DateTime.now(),
+          })
+          console.log(`➕ Créé : ${manga.title}`)
+        }
+
+        const delay = Math.floor(Math.random() * 1500) + 1000
+        await this.wait(delay)
+      }
+
+      page++
       const delay = Math.floor(Math.random() * 2000) + 1000
-      console.log(`⏳ Pause de ${delay}ms pour éviter le blocage`)
+      console.log(`⏳ Pause de ${delay}ms avant la page suivante`)
       await this.wait(delay)
     }
 
-    console.log(`✅ ${allResults.length} œuvres récupérées depuis ${site.name}`)
-
-    const worksData = []
-    for (const manga of allResults) {
-      const totalChapters = await this.getChapterCount(manga.link)
-      console.log(`📚 ${manga.title} → ${totalChapters} chapitres`)
-
-      worksData.push({
-        title: manga.title,
-        sourceUrl: manga.link,
-        coverUrl: manga.cover || '',
-        totalChapters, // camelCase ici
-        type: 'MANGA',
-        lastScrapedAt: DateTime.now(),
-      })
-
-      const delay = Math.floor(Math.random() * 1500) + 1000
-      await this.wait(delay)
-    }
-
-    await Work.createMany(worksData)
-    console.log(`📥 Données insérées dans la table "works" avec chapitres inclus`)
+    console.log(`📥 Scraping terminé : ${totalScraped} œuvres traitées.`)
   }
 }

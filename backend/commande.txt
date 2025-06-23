@@ -17,5 +17,6 @@ setxkbmap fr
 chmod +x /tmp/chromium
 /tmp/chromium --no-sandbox --headless --disable-gpu --remote-debugging-port=9222 https://example.com
 /tmp/chromium --no-sandbox --headless --disable-gpu --remote-debugging-port=9222 &
-
+sudo crontab -e
+/root/manjaco/run_scraper.sh
 /root/.local/bin/protonvpn init
