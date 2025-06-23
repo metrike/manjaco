@@ -42,7 +42,7 @@ export async function scrapeAllWorks({
   puppeteerExtra.use(StealthPlugin())
 
   const browser = await puppeteerExtra.launch({
-    headless: 'new',
+    headless: true,
     executablePath: '/opt/homebrew/bin/chromium', // 👈 Ajout important
     args: [
       '--no-sandbox',
