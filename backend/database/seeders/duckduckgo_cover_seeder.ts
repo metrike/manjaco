@@ -8,10 +8,11 @@ import fs from 'fs'
 export default class DuckduckgoCoverSeeder extends BaseSeeder {
   public async run() {
     const works = await Work.query()
+    const total = works.length
+
     const browser = await puppeteer.launch({
-      headless: 'new', // ou false si 'new' ne marche pas
-      // executablePath: '/opt/homebrew/bin/chromium',
-      executablePath: '/snap/bin/chromium',
+      headless: 'new',
+      executablePath: '/snap/bin/chromium', // ou ton chemin local
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -22,12 +23,12 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
       ],
     })
 
-
     const page = await browser.newPage()
 
-    for (const work of works) {
-      console.log(work.id+" "+work.title)
+    for (let i = 0; i < total; i++) {
+      const work = works[i]
       const query = `${work.title} manga`
+      console.log(`\n📊 ${i + 1} / ${total} ➤ ${work.id} ${work.title}`)
       console.log(`🔍 Recherche DuckDuckGo pour : ${query}`)
 
       try {
@@ -56,13 +57,11 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
       } catch (error: any) {
         console.error(`❌ Erreur DuckDuckGo pour ${work.title} : ${error.message}`)
 
-        // Créer un dossier pour les screenshots s'il n'existe pas
         const screenshotDir = path.resolve('tmp/screenshots')
         if (!fs.existsSync(screenshotDir)) {
           fs.mkdirSync(screenshotDir, { recursive: true })
         }
 
-        // Sauvegarde une capture d’écran
         const filePath = path.join(screenshotDir, `error_${work.id}.png`)
         await page.screenshot({ path: filePath, fullPage: true })
         console.log(`📸 Screenshot sauvegardé : ${filePath}`)
