@@ -2,8 +2,8 @@
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Tous les jours à 8h (heure de Paris)
-  workflow_dispatch:
+    - cron: '0 3 */2 * *'
+  workflow_dispatch: # permet aussi de le lancer manuellement
   push:
     branches:
       - main
