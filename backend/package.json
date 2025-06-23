@@ -60,6 +60,7 @@
     "@adonisjs/lucid": "^21.6.1",
     "@sparticuz/chromium": "^137.0.1",
     "@vinejs/vine": "^3.0.1",
+    "@xata.io/client": "^0.0.0-next.v93343b9646f57a1e5c51c35eccf0767c2bb80baa",
     "axios": "^1.10.0",
     "cheerio": "^1.1.0",
     "fs": "^0.0.1-security",
