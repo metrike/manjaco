@@ -1,15 +1,9 @@
-#name: Run Scraping Manga Seeder
+name: Run Scraping Manga Seeder
 
 on:
   schedule:
-    - cron: '0 3 */2 * *'
-  workflow_dispatch: # permet aussi de le lancer manuellement
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
-      - '.github/workflows/seed.yml'
+    - cron: '0 3 * * *'  # Tous les jours à 03:00 UTC
+  workflow_dispatch:      # Permet aussi un déclenchement manuel
 
 jobs:
   seed:
