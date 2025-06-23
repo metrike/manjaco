@@ -20,3 +20,5 @@ chmod +x /tmp/chromium
 sudo crontab -e
 /root/manjaco/run_scraper.sh
 /root/.local/bin/protonvpn init
+vim /root/manjaco/run_scraper.sh
+crontab -e
