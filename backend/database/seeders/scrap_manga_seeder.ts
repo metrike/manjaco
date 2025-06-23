@@ -6,7 +6,6 @@ import axios from 'axios'
 import * as cheerio from 'cheerio'
 
 export default class WorkSeeder extends BaseSeeder {
-
   private async scrapeMangaList(page: number, retries = 3): Promise<{ title: string, link: string, cover: string | null, totalChapters: number }[]> {
     const url = `https://www.mangakakalot.gg/genre/all?type=topview&category=all&state=all&page=${page}`
     console.log(`🌐 Scraping URL : ${url}`)
@@ -14,10 +13,11 @@ export default class WorkSeeder extends BaseSeeder {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const { data } = await axios.get(url, {
+          timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0 Safari/537.36',
-            'Referer': 'https://www.google.com'
-          }
+            'Referer': 'https://www.google.com',
+          },
         })
 
         const $ = cheerio.load(data)
@@ -44,7 +44,7 @@ export default class WorkSeeder extends BaseSeeder {
         console.warn(`⚠️ Erreur page ${page}, tentative ${attempt}/${retries} - Status ${status}`)
 
         if (status === 429 && attempt < retries) {
-          const wait = 10000 * attempt // 10s, 20s, 30s
+          const wait = 10000 * attempt
           console.log(`⏳ Trop de requêtes, pause ${wait / 1000}s avant retry...`)
           await new Promise(res => setTimeout(res, wait))
         } else {
@@ -62,12 +62,17 @@ export default class WorkSeeder extends BaseSeeder {
     console.log(`📅 Début du script - ${start.toISO()}`)
     console.log('🚀 Démarrage du seeder WorkSeeder')
 
+    const site = await Website.findByOrFail('name', 'Mangakakalot')
+    console.log(`🔍 Scraping depuis le site : ${site.name}`)
+
     let page = 1
     let totalScraped = 0
 
     while (true) {
       console.log(`🔄 Scraping page ${page}`)
       const mangas = await this.scrapeMangaList(page)
+
+      console.log(`📃 Résultat scraping page ${page} : ${mangas.length} œuvres`)
 
       if (mangas.length === 0) {
         console.log(`✅ Fin du scraping : aucune œuvre trouvée à la page ${page}`)
@@ -113,15 +118,15 @@ export default class WorkSeeder extends BaseSeeder {
         )
       }
 
-      // Pause aléatoire entre les pages (évite les 429)
       const delay = Math.floor(Math.random() * 1500) + 1000
       console.log(`🕒 Pause ${delay}ms avant la page suivante...`)
       await new Promise(res => setTimeout(res, delay))
 
+      console.log(`➡️ Passage à la page ${page + 1}`)
       page++
     }
 
-  const end = DateTime.now()
+    const end = DateTime.now()
     console.log(`✅ Scraping terminé : ${totalScraped} œuvres traitées.`)
     console.log(`🏁 Fin du script - ${end.toISO()}`)
   }
