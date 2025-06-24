@@ -45,7 +45,6 @@ export default class WorkSeeder extends BaseSeeder {
               })
               const $$ = cheerio.load(detail.data)
               description = $$('#contentBox').text().trim().replace(/\s+/g, ' ').slice(0, 500)
-              console.log(`📝 Description pour ${title} : ${description}`)
             } catch (descErr) {
               console.warn(`⚠️ Impossible de récupérer la description de ${title}`)
             }
