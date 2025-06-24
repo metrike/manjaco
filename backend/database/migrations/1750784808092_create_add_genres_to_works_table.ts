@@ -5,13 +5,13 @@ export default class extends BaseSchema {
 
   public async up () {
     this.schema.alterTable(this.tableName, (table) => {
-      table.jsonb('genres_selector').nullable()
+      table.string('cover_url', 600).alter()
     })
   }
 
   public async down () {
     this.schema.alterTable(this.tableName, (table) => {
-      table.dropColumn('genres_selector')
+      table.string('cover_url', 255).alter() // ou l’ancienne valeur si connue
     })
   }
 }
