@@ -24,3 +24,4 @@ vim /root/manjaco/run_scraper.sh
 crontab -e
 
 nohup node ace db:seed --files "database/seeders/duckduckgo_cover_seeder.ts" > seed.log 2>&1 &
+node ace db:seed --files database/seeders/WorkSQLSeeder.ts
