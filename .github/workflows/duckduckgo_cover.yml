@@ -1,50 +1,39 @@
 name: DuckDuckGo Cover Seeder
 
 on:
-  workflow_dispatch: # Lancement manuel
+  schedule:
+    - cron: '0 4 * * 1' # Chaque lundi à 4h00 UTC (modifiable)
+  workflow_dispatch:
 
 jobs:
-  run-duckduckgo-cover:
+  scrape-covers:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
-
-    env:
-      CHROME_BIN: /usr/bin/google-chrome
-      DISPLAY: ":99"
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      NODE_ENV: development
-      APP_KEY: ${{ secrets.APP_KEY }}
-      LOG_LEVEL: info
-
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Node.js
+      - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: 📦 Install dependencies
+      - name: Install Chromium
+        run: |
+          sudo apt update
+          sudo apt install -y chromium-browser
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Install dependencies
+        working-directory: ./backend
         run: npm install
 
-      - name: 🧪 Vérification du binaire Chrome
-        run: |
-          echo "Chrome path: $CHROME_BIN"
-          $CHROME_BIN --version
-
-      - name: 🔧 Build le projet (si nécessaire)
-        run: node ace build --ignore-ts-errors
-
-      - name: 🧠 Exécution du DuckDuckGo Cover Seeder
+      - name: Run Puppeteer Cover Seeder
+        working-directory: ./backend
         run: node ace db:seed --files database/seeders/duckduckgo_cover_seeder.ts
-
-      - name: 📸 Upload des captures d’écran (si erreurs scraping)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: backend/tmp/screenshots
+        env:
+          NODE_ENV: development
+          APP_KEY: ${{ secrets.APP_KEY }}
+          LOG_LEVEL: info
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser

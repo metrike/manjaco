@@ -12,7 +12,7 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
     const total = works.length
     const browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/snap/bin/chromium', // ou ton chemin local
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -22,6 +22,7 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
         '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
       ],
     })
+
 
     const page = await browser.newPage()
 
@@ -73,3 +74,4 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
     await browser.close()
   }
 }
+
