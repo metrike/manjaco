@@ -1,12 +1,12 @@
-import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import {BaseSeeder} from '@adonisjs/lucid/seeders'
 import Website from '#models/website'
 import Work from '#models/work'
-import { DateTime } from 'luxon'
+import {DateTime} from 'luxon'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 
 export default class WorkSeeder extends BaseSeeder {
-  private async scrapeMangaList(page: number, retries = 3): Promise<{ title: string, link: string, cover: string | null, totalChapters: number }[]> {
+  private async scrapeMangaList(page: number, retries = 3): Promise<{ title: string, link: string, cover: string | null, totalChapters: number, description: string | null }[]> {
     const url = `https://www.mangakakalot.gg/genre/all?type=topview&category=all&state=all&page=${page}`
     console.log(`🌐 Scraping URL : ${url}`)
 
@@ -21,9 +21,12 @@ export default class WorkSeeder extends BaseSeeder {
         })
 
         const $ = cheerio.load(data)
-        const results: { title: string, link: string, cover: string | null, totalChapters: number }[] = []
+        const results: { title: string, link: string, cover: string | null, totalChapters: number, description: string | null }[] = []
 
-        $('.list-truyen-item-wrap').each((_, el) => {
+        const mangas = $('.list-truyen-item-wrap')
+
+        for (let i = 0; i < mangas.length; i++) {
+          const el = mangas[i]
           const title = $(el).find('h3 a').text().trim()
           const link = $(el).find('h3 a').attr('href')
           const cover = $(el).find('img').attr('src') || null
@@ -31,10 +34,27 @@ export default class WorkSeeder extends BaseSeeder {
           const match = chapterText.match(/Chapter\s+(\d+(?:\.\d+)?)/i)
           const totalChapters = match ? Math.floor(parseFloat(match[1])) : 0
 
-          if (title && link) {
-            results.push({ title, link, cover, totalChapters })
+          let description: string | null = null
+          if (link) {
+            try {
+              const detail = await axios.get(link, {
+                timeout: 10000,
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0 Safari/537.36',
+                },
+              })
+              const $$ = cheerio.load(detail.data)
+              description = $$('#contentBox').text().trim().replace(/\s+/g, ' ').slice(0, 500)
+              console.log(`📝 Description pour ${title} : ${description}`)
+            } catch (descErr) {
+              console.warn(`⚠️ Impossible de récupérer la description de ${title}`)
+            }
           }
-        })
+
+          if (title && link) {
+            results.push({ title, link, cover, totalChapters, description })
+          }
+        }
 
         console.log(`✅ Page ${page} : ${results.length} œuvres extraites`)
         return results
@@ -64,9 +84,8 @@ export default class WorkSeeder extends BaseSeeder {
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
     console.log(`🔍 Scraping depuis le site : ${site.name}`)
-    const startPage = 1 // 🔁 Départ normal
-
-    let page = startPage
+     // 🔁 Départ normal
+    let page = 1
     let totalScraped = 0
 
     while (true) {
@@ -99,6 +118,7 @@ export default class WorkSeeder extends BaseSeeder {
               if (existingWork) {
                 existingWork.totalChapters = manga.totalChapters
                 existingWork.lastScrapedAt = DateTime.now()
+                existingWork.description = manga.description
                 await existingWork.save()
                 console.log(`🔄 Mise à jour : ${manga.title}`)
               } else {
@@ -109,6 +129,7 @@ export default class WorkSeeder extends BaseSeeder {
                   totalChapters: manga.totalChapters,
                   type: 'MANGA',
                   lastScrapedAt: DateTime.now(),
+                  description: manga.description
                 })
                 console.log(`➕ Ajouté : ${manga.title}`)
               }

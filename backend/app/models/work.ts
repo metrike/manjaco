@@ -25,6 +25,9 @@ export default class Work extends BaseModel {
   @column()
   declare lastScrapedAt: DateTime
 
+  @column()
+  declare description: string | null
+
   @hasMany(() => UserProgress)
   declare userprogresses: HasMany<typeof UserProgress>
 }

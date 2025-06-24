@@ -37,4 +37,8 @@ export default class Website extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @column()
+  declare descriptionSelector: string | null
+
 }

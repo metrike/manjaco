@@ -8,10 +8,11 @@ import fs from 'fs'
 export default class DuckduckgoCoverSeeder extends BaseSeeder {
   public async run() {
     const works = await Work.query()
+      .whereRaw("cover_url NOT ILIKE 'https://external-content.duckduckgo.com%'")
     const total = works.length
-
     const browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: process.env.CHROME_BIN,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

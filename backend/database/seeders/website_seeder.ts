@@ -65,7 +65,9 @@ export default class extends BaseSeeder {
       limit: 0,
       parallelChunks: 5,
       coverInPage: true,
-    }
+      descriptionSelector: '#contentBox', // ✅ Ajout du sélecteur
+
+      }
 
     ])
   }

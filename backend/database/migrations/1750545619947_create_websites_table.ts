@@ -21,6 +21,8 @@ export default class extends BaseSchema {
       table.boolean('cover_in_page').defaultTo(false)
 
       table.timestamps(true)
+      table.string('description_selector').nullable() // Ajout du sélecteur pour la description
+
     })
   }
 

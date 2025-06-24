@@ -12,6 +12,7 @@ export default class extends BaseSchema {
       table.string('cover_url')
       table.integer('total_chapters').defaultTo(0)
       table.timestamp('last_scraped_at', { useTz: true })
+      table.string('description', 500).nullable()
     })
   }
 
