@@ -12,6 +12,7 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
     const total = works.length
     const browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: '/snap/bin/chromium', // ou ton chemin local
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
