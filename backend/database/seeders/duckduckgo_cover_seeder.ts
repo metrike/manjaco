@@ -28,7 +28,8 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
 
     for (let i = 0; i < total; i++) {
       const work = works[i]
-      const query = `${work.title} cover manga`
+      const cleanedTitle = work.title.replace(/[^a-zA-Z0-9\s]/g, '')
+      const query = `${cleanedTitle} cover manga`
       console.log(`\n📊 ${i + 1} / ${total} ➤ ${work.id} ${work.title}`)
       console.log(`🔍 Recherche DuckDuckGo pour : ${query}`)
 
