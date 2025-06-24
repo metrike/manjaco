@@ -13,37 +13,37 @@ jobs:
       run:
         working-directory: backend
 
-    # steps:
-    #   - name: ⬇️ Checkout repository
-    #     uses: actions/checkout@v3
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v3
 
-    #   - name: ⚙️ Setup Node.js
-    #     uses: actions/setup-node@v3
-    #     with:
-    #       node-version: 20
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
 
-    #   - name: 📦 Install dependencies
-    #     run: npm install
+      - name: 📦 Install dependencies
+        run: npm install
 
-    #   - name: ⚙️ Build project (si nécessaire)
-    #     run: node ace build --ignore-ts-errors
+      - name: ⚙️ Build project (si nécessaire)
+        run: node ace build --ignore-ts-errors
 
-    #   - name: 🗄️ Run ScrapMangaSeeder
-    #     env:
-    #       DISPLAY: ":99"
-    #       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    #       NODE_ENV: development
-    #       APP_KEY: ${{ secrets.APP_KEY }}
-    #       LOG_LEVEL: info
-    #     run: |
-    #       node ace db:seed --files "database/seeders/scrap_manga_seeder"
+      # - name: 🗄️ Run ScrapMangaSeeder
+      #   env:
+      #     DISPLAY: ":99"
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      #     NODE_ENV: development
+      #     APP_KEY: ${{ secrets.APP_KEY }}
+      #     LOG_LEVEL: info
+      #   run: |
+      #     node ace db:seed --files "database/seeders/scrap_manga_seeder"
 
-    #   - name: 📸 Upload screenshot for debug (si scraping échoue)
-    #     if: failure()
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: debug-screenshot
-    #       path: /tmp/page.png
+      - name: 📸 Upload screenshot for debug (si scraping échoue)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: /tmp/page.png
 
   export_sql:
     runs-on: ubuntu-latest
