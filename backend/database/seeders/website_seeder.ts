@@ -66,7 +66,7 @@ export default class extends BaseSeeder {
       parallelChunks: 5,
       coverInPage: true,
       descriptionSelector: '#contentBox', // ✅ Ajout du sélecteur
-
+      genreSelector: '.genre-list a', // ✅ Ajout ici
       }
 
     ])

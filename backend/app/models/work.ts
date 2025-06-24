@@ -30,4 +30,8 @@ export default class Work extends BaseModel {
 
   @hasMany(() => UserProgress)
   declare userprogresses: HasMany<typeof UserProgress>
+
+  @column()
+  declare genres: string[] | null
+
 }

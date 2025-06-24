@@ -16,6 +16,8 @@ export default class Work_sql_seeder extends BaseSeeder {
       'totalChapters',
       'type',
       'lastScrapedAt',
+      "genres",
+      'description'
     ]
 
     const sqlLines = allWorks.map((work) => {

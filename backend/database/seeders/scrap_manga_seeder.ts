@@ -1,12 +1,12 @@
-import {BaseSeeder} from '@adonisjs/lucid/seeders'
+import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Website from '#models/website'
 import Work from '#models/work'
-import {DateTime} from 'luxon'
+import { DateTime } from 'luxon'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 
 export default class WorkSeeder extends BaseSeeder {
-  private async scrapeMangaList(page: number, retries = 3): Promise<{ title: string, link: string, cover: string | null, totalChapters: number, description: string | null }[]> {
+  private async scrapeMangaList(page: number, retries = 3): Promise<{ title: string, link: string, cover: string | null, totalChapters: number, description: string | null, genres: string[] }[]> {
     const url = `https://www.mangakakalot.gg/genre/all?type=topview&category=all&state=all&page=${page}`
     console.log(`🌐 Scraping URL : ${url}`)
 
@@ -21,7 +21,7 @@ export default class WorkSeeder extends BaseSeeder {
         })
 
         const $ = cheerio.load(data)
-        const results: { title: string, link: string, cover: string | null, totalChapters: number, description: string | null }[] = []
+        const results: { title: string, link: string, cover: string | null, totalChapters: number, description: string | null, genres: string[] }[] = []
 
         const mangas = $('.list-truyen-item-wrap')
 
@@ -35,6 +35,8 @@ export default class WorkSeeder extends BaseSeeder {
           const totalChapters = match ? Math.floor(parseFloat(match[1])) : 0
 
           let description: string | null = null
+          let genres: string[] = []
+
           if (link) {
             try {
               const detail = await axios.get(link, {
@@ -45,13 +47,15 @@ export default class WorkSeeder extends BaseSeeder {
               })
               const $$ = cheerio.load(detail.data)
               description = $$('#contentBox').text().trim().replace(/\s+/g, ' ').slice(0, 500)
+              genres = $$('.genre-list a').map((_, el) => $$(el).text().trim()).get()
+              console.log(`📚 Genres de ${title} : ${genres.join(', ')}`)
             } catch (descErr) {
-              console.warn(`⚠️ Impossible de récupérer la description de ${title}`)
+              console.warn(`⚠️ Impossible de récupérer la description ou les genres de ${title}`)
             }
           }
 
           if (title && link) {
-            results.push({ title, link, cover, totalChapters, description })
+            results.push({ title, link, cover, totalChapters, description, genres })
           }
         }
 
@@ -83,7 +87,6 @@ export default class WorkSeeder extends BaseSeeder {
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
     console.log(`🔍 Scraping depuis le site : ${site.name}`)
-     // 🔁 Départ normal
     let page = 1
     let totalScraped = 0
 

@@ -41,4 +41,6 @@ export default class Website extends BaseModel {
   @column()
   declare descriptionSelector: string | null
 
+  @column()
+  declare genreSelector: string | null
 }
