@@ -28,15 +28,15 @@ jobs:
       - name: ⚙️ Build project (si nécessaire)
         run: node ace build --ignore-ts-errors
 
-      # - name: 🗄️ Run ScrapMangaSeeder
-      #   env:
-      #     DISPLAY: ":99"
-      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      #     NODE_ENV: development
-      #     APP_KEY: ${{ secrets.APP_KEY }}
-      #     LOG_LEVEL: info
-      #   run: |
-      #     node ace db:seed --files "database/seeders/scrap_manga_seeder"
+      - name: 🗄️ Run ScrapMangaSeeder
+        env:
+          DISPLAY: ":99"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: development
+          APP_KEY: ${{ secrets.APP_KEY }}
+          LOG_LEVEL: info
+        run: |
+          node ace db:seed --files "database/seeders/scrap_manga_seeder"
 
       - name: 📸 Upload screenshot for debug (si scraping échoue)
         if: failure()
