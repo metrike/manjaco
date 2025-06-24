@@ -64,7 +64,7 @@ export default class WorkSeeder extends BaseSeeder {
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
     console.log(`🔍 Scraping depuis le site : ${site.name}`)
-    const startPage = 2012 // ✅ Reprendre ici
+    const startPage = 1 // 🔁 Départ normal
 
     let page = startPage
     let totalScraped = 0
