@@ -9,9 +9,10 @@ export default class DuckduckgoCoverSeeder extends BaseSeeder {
   public async run() {
     const works = await Work.query()
       .whereRaw("cover_url NOT ILIKE 'https://external-content.duckduckgo.com%'")
+    console.log(works.length, 'œuvres à mettre à jour')
     const total = works.length
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       executablePath: process.env.CHROME_BIN,
       args: [
         '--no-sandbox',
