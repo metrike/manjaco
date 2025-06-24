@@ -4,4 +4,3 @@ frontend/.env
 # Ignore node_modules in both backend and frontend
 backend/node_modules
 frontend/node_modules
-page-fail-*.png
