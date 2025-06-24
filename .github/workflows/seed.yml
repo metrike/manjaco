@@ -2,7 +2,7 @@ name: Run Scraping Manga Seeder
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # Tous les jours à 03:00 UTC
+    - cron: '0 23 * * *'  # Tous les jours à 03:00 UTC
   workflow_dispatch:      # Permet aussi un déclenchement manuel
 
 jobs:
