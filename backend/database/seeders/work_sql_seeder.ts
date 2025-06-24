@@ -11,11 +11,11 @@ export default class Work_sql_seeder extends BaseSeeder {
     const columns = [
       'id',
       'title',
-      'source_url',
-      'cover_url',
-      'total_chapters',
+      'sourceUrl',
+      'coverUrl',
+      'totalChapters',
       'type',
-      'last_scraped_at',
+      'lastScrapedAt',
     ]
 
     const sqlLines = allWorks.map((work) => {
