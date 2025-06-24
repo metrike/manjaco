@@ -20,6 +20,9 @@ export default class Work_sql_seeder extends BaseSeeder {
       'description'
     ]
 
+    const snakeColumns = columns.map(toSnakeCase)
+
+
     const sqlLines = allWorks.map((work) => {
       const values = columns.map((col) => {
         const val = work[col as keyof typeof work]
@@ -31,7 +34,7 @@ export default class Work_sql_seeder extends BaseSeeder {
         return `'${String(val).replace(/'/g, "''")}'`
       })
 
-      return `INSERT INTO works (${columns.join(', ')}) VALUES (${values.join(', ')});`
+      return `INSERT INTO works (${snakeColumns.join(', ')}) VALUES (${values.join(', ')});`
     })
 
     const output = sqlLines.join('\n')
@@ -39,3 +42,6 @@ export default class Work_sql_seeder extends BaseSeeder {
     console.log('✅ Fichier SQL généré : works_export.sql')
   }
 }
+
+const toSnakeCase = (str: string) =>
+  str.replace(/([A-Z])/g, '_$1').toLowerCase()
