@@ -51,7 +51,6 @@ export default class WorkSeeder extends BaseSeeder {
           if (existingWork) {
             description = existingWork.description
             genres = existingWork.genres || []
-            console.log(`🔎 Manga déjà en base : ${title}`)
           } else {
             try {
               const detail = await axios.get(link, {
@@ -101,7 +100,7 @@ export default class WorkSeeder extends BaseSeeder {
     console.log(`📅 Début du script - ${start.toISO()}`)
     console.log('🚀 Démarrage du seeder WorkSeeder')
 
-    const site = await Website.findByOrFail('name', 'Mangakakalot')
+    // const site = await Website.findByOrFail('name', 'Mangakakalot')
     let page = 1
     let totalScraped = 0
 
@@ -138,14 +137,20 @@ export default class WorkSeeder extends BaseSeeder {
               }
 
               if (existingWork) {
+                const shouldUpdate = existingWork.totalChapters !== manga.totalChapters
+
                 existingWork.merge({
                   totalChapters: manga.totalChapters,
                   lastScrapedAt: DateTime.now(),
                   description: manga.description,
                   genres,
                 })
+
                 await existingWork.save()
-                console.log(`🔄 Mise à jour : ${manga.title}`)
+
+                if (shouldUpdate) {
+                  console.log(`🔄 Mise à jour : ${manga.title}`)
+                }
               } else {
                 await Work.create({
                   title: manga.title,
@@ -159,6 +164,7 @@ export default class WorkSeeder extends BaseSeeder {
                 })
                 console.log(`➕ Ajouté : ${manga.title}`)
               }
+
 
             } catch (err: any) {
               console.error(`❌ Erreur traitement ${manga.title} : ${err.message}`)
