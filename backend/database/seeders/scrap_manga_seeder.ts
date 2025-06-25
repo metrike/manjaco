@@ -16,36 +16,43 @@ interface ScrapedManga {
 
 export default class WorkSeeder extends BaseSeeder {
   private async scrapeMangaList(page: number, retries = 3): Promise<ScrapedManga[]> {
-    const url = `https://www.mangakakalot.gg/genre/all?type=topview&category=all&state=all&page=${page}`
-    console.log(`🌐 Scraping URL : ${url}`)
+  const url = `https://www.mangakakalot.gg/genre/all?type=topview&category=all&state=all&page=${page}`
+  console.log(`🌐 Scraping URL : ${url}`)
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const { data } = await axios.get(url, {
-          timeout: 10000,
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Referer': 'https://www.google.com',
-          },
-        })
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const { data } = await axios.get(url, {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Referer': 'https://www.google.com',
+        },
+      })
 
-        const $ = cheerio.load(data)
-        const results: ScrapedManga[] = []
-        const mangas = $('.list-truyen-item-wrap')
+      const $ = cheerio.load(data)
+      const results: ScrapedManga[] = []
+      const mangas = $('.list-truyen-item-wrap')
 
-        for (let i = 0; i < mangas.length; i++) {
-          const el = mangas[i]
-          const title = $(el).find('h3 a').text().trim()
-          const link = $(el).find('h3 a').attr('href')
-          const cover = $(el).find('img').attr('src') || null
-          const chapterText = $(el).find('a.list-story-item-wrap-chapter').text().trim()
-          const match = chapterText.match(/Chapter\s+(\d+(?:\.\d+)?)/i)
-          const totalChapters = match ? Math.floor(parseFloat(match[1])) : 0
+      for (let i = 0; i < mangas.length; i++) {
+        const el = mangas[i]
+        const title = $(el).find('h3 a').text().trim()
+        const link = $(el).find('h3 a').attr('href')
+        const cover = $(el).find('img').attr('src') || null
+        const chapterText = $(el).find('a.list-story-item-wrap-chapter').text().trim()
+        const match = chapterText.match(/Chapter\s+(\d+(?:\.\d+)?)/i)
+        const totalChapters = match ? Math.floor(parseFloat(match[1])) : 0
 
-          let description: string | null = null
-          let genres: string[] = []
+        let description: string | null = null
+        let genres: string[] = []
 
-          if (link) {
+        if (link) {
+          // Vérifie si le manga existe déjà en base
+          const existingWork = await Work.findBy('sourceUrl', link)
+          if (existingWork) {
+            description = existingWork.description
+            genres = existingWork.genres || []
+            console.log(`🔎 Manga déjà en base : ${title}`)
+          } else {
             try {
               const detail = await axios.get(link, {
                 timeout: 10000,
@@ -61,32 +68,33 @@ export default class WorkSeeder extends BaseSeeder {
               console.warn(`⚠️ Impossible de récupérer la description ou les genres de ${title}`)
             }
           }
-
-          if (title && link) {
-            results.push({ title, link, cover, totalChapters, description, genres })
-          }
         }
 
-        console.log(`✅ Page ${page} : ${results.length} œuvres extraites`)
-        return results
-
-      } catch (err: any) {
-        const status = err?.response?.status || 'N/A'
-        console.warn(`⚠️ Erreur page ${page}, tentative ${attempt}/${retries} - Status ${status}`)
-
-        if (status === 429 && attempt < retries) {
-          const wait = 10000 * attempt
-          console.log(`⏳ Trop de requêtes, pause ${wait / 1000}s avant retry...`)
-          await new Promise(res => setTimeout(res, wait))
-        } else {
-          console.error(`❌ Abandon du scraping de la page ${page} après ${attempt} tentative(s)`)
-          return []
+        if (title && link) {
+          results.push({ title, link, cover, totalChapters, description, genres })
         }
       }
-    }
 
-    return []
+      console.log(`✅ Page ${page} : ${results.length} œuvres extraites`)
+      return results
+
+    } catch (err: any) {
+      const status = err?.response?.status || 'N/A'
+      console.warn(`⚠️ Erreur page ${page}, tentative ${attempt}/${retries} - Status ${status}`)
+
+      if (status === 429 && attempt < retries) {
+        const wait = 10000 * attempt
+        console.log(`⏳ Trop de requêtes, pause ${wait / 1000}s avant retry...`)
+        await new Promise(res => setTimeout(res, wait))
+      } else {
+        console.error(`❌ Abandon du scraping de la page ${page} après ${attempt} tentative(s)`)
+        return []
+      }
+    }
   }
+
+  return []
+}
 
   public async run() {
     const start = DateTime.now()
