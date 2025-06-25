@@ -87,7 +87,7 @@ export default class WorkSeeder extends BaseSeeder {
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
     console.log(`🔍 Scraping depuis le site : ${site.name}`)
-    let page = 1446 // Commence à la page 1446, ajustez selon vos besoins
+    let page = 1 // Commence à la page 1446, ajustez selon vos besoins
     let totalScraped = 0
 
     while (true) {
@@ -121,7 +121,8 @@ export default class WorkSeeder extends BaseSeeder {
                 existingWork.totalChapters = manga.totalChapters
                 existingWork.lastScrapedAt = DateTime.now()
                 existingWork.description = manga.description
-                await existingWork.save()
+                existingWork.genres = manga.genres // <= ICI
+                  await existingWork.save()
                 console.log(`🔄 Mise à jour : ${manga.title}`)
               } else {
                 await Work.create({
@@ -131,7 +132,9 @@ export default class WorkSeeder extends BaseSeeder {
                   totalChapters: manga.totalChapters,
                   type: 'MANGA',
                   lastScrapedAt: DateTime.now(),
-                  description: manga.description
+                  description: manga.description,
+                  genres: manga.genres, // <= ICI
+
                 })
                 console.log(`➕ Ajouté : ${manga.title}`)
               }
