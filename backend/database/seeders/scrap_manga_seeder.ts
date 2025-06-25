@@ -124,10 +124,11 @@ export default class WorkSeeder extends BaseSeeder {
               const existingWork = await Work.findBy('sourceUrl', manga.link)
 
               const genres = Array.isArray(manga.genres)
-                ? manga.genres
+                ? manga.genres.map((g) => String(g).trim())
                 : typeof manga.genres === 'string'
-                  ? manga.genres.split(',').map(g => g.trim())
+                  ? manga.genres.split(',').map((g) => g.trim())
                   : []
+
 
               if (existingWork) {
                 existingWork.totalChapters = manga.totalChapters
