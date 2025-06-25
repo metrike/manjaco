@@ -102,7 +102,7 @@ export default class WorkSeeder extends BaseSeeder {
     console.log('🚀 Démarrage du seeder WorkSeeder')
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
-    let page = 1928
+    let page = 1
     let totalScraped = 0
 
     while (true) {
