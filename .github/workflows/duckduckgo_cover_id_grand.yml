@@ -1,0 +1,39 @@
+name: DuckDuckGo Cover Seeder Id Grand
+
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Chaque lundi à 4h00 UTC (modifiable)
+  workflow_dispatch:
+
+jobs:
+  scrape-covers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Chromium
+        run: |
+          sudo apt update
+          sudo apt install -y chromium-browser
+        env:
+          DEBIAN_FRONTEND: noninteractive
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Run Puppeteer Cover Seeder
+        working-directory: ./backend
+        run: node ace db:seed --files database/seeders/duckduck_dover_seeder_id_grand.ts
+        env:
+          NODE_ENV: development
+          APP_KEY: ${{ secrets.APP_KEY }}
+          LOG_LEVEL: info
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
