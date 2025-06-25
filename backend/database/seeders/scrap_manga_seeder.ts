@@ -99,6 +99,7 @@ export default class WorkSeeder extends BaseSeeder {
     const start = DateTime.now()
     console.log(`📅 Début du script - ${start.toISO()}`)
     console.log('🚀 Démarrage du seeder WorkSeeder')
+    let updatedCount = 0
 
     // const site = await Website.findByOrFail('name', 'Mangakakalot')
     let page = 1
@@ -149,6 +150,7 @@ export default class WorkSeeder extends BaseSeeder {
                 await existingWork.save()
 
                 if (shouldUpdate) {
+                  updatedCount++
                   console.log(`🔄 Mise à jour : ${manga.title}`)
                 }
               } else {
@@ -179,6 +181,7 @@ export default class WorkSeeder extends BaseSeeder {
 
     const end = DateTime.now()
     console.log(`✅ Scraping terminé : ${totalScraped} œuvres traitées.`)
+    console.log(`🔢 Mangas mis à jour (nb chapitres modifiés) : ${updatedCount}`)
     console.log(`🏁 Fin du script - ${end.toISO()}`)
   }
 }
