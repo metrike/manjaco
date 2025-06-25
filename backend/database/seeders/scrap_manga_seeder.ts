@@ -24,14 +24,13 @@ export default class WorkSeeder extends BaseSeeder {
         const { data } = await axios.get(url, {
           timeout: 10000,
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0',
             'Referer': 'https://www.google.com',
           },
         })
 
         const $ = cheerio.load(data)
         const results: ScrapedManga[] = []
-
         const mangas = $('.list-truyen-item-wrap')
 
         for (let i = 0; i < mangas.length; i++) {
@@ -51,7 +50,7 @@ export default class WorkSeeder extends BaseSeeder {
               const detail = await axios.get(link, {
                 timeout: 10000,
                 headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0 Safari/537.36',
+                  'User-Agent': 'Mozilla/5.0',
                 },
               })
               const $$ = cheerio.load(detail.data)
@@ -70,6 +69,7 @@ export default class WorkSeeder extends BaseSeeder {
 
         console.log(`✅ Page ${page} : ${results.length} œuvres extraites`)
         return results
+
       } catch (err: any) {
         const status = err?.response?.status || 'N/A'
         console.warn(`⚠️ Erreur page ${page}, tentative ${attempt}/${retries} - Status ${status}`)
@@ -94,22 +94,15 @@ export default class WorkSeeder extends BaseSeeder {
     console.log('🚀 Démarrage du seeder WorkSeeder')
 
     const site = await Website.findByOrFail('name', 'Mangakakalot')
-    console.log(`🔍 Scraping depuis le site : ${site.name}`)
     let page = 1
     let totalScraped = 0
 
     while (true) {
       console.log(`🔄 Scraping page ${page}`)
       const mangas = await this.scrapeMangaList(page)
-
-      if (mangas.length === 0) {
-        console.log(`✅ Fin du scraping : aucune œuvre trouvée à la page ${page}`)
-        break
-      }
+      if (mangas.length === 0) break
 
       totalScraped += mangas.length
-      console.log(`📦 ${mangas.length} œuvres trouvées à la page ${page}`)
-
       const limitedConcurrency = 10
       const chunks = []
       for (let i = 0; i < mangas.length; i += limitedConcurrency) {
@@ -120,21 +113,29 @@ export default class WorkSeeder extends BaseSeeder {
         await Promise.allSettled(
           chunk.map(async (manga) => {
             try {
-              console.log(`➡️ ${manga.title} (Chapitres: ${manga.totalChapters})`)
               const existingWork = await Work.findBy('sourceUrl', manga.link)
 
-              const genres = Array.isArray(manga.genres)
-                ? manga.genres.map((g) => String(g).trim())
-                : typeof manga.genres === 'string'
-                  ? manga.genres.split(',').map((g) => g.trim())
-                  : []
-
+              let genres: string[] = []
+              try {
+                if (Array.isArray(manga.genres)) {
+                  genres = manga.genres.map((g) => String(g).trim())
+                } else if (typeof manga.genres === 'string') {
+                  genres = JSON.parse(manga.genres)
+                  if (!Array.isArray(genres)) throw new Error('Invalid genre structure')
+                  genres = genres.map((g) => String(g).trim())
+                }
+              } catch {
+                console.warn(`⚠️ Genres invalides pour "${manga.title}", ignorés.`)
+                genres = []
+              }
 
               if (existingWork) {
-                existingWork.totalChapters = manga.totalChapters
-                existingWork.lastScrapedAt = DateTime.now()
-                existingWork.description = manga.description
-                existingWork.genres = genres
+                existingWork.merge({
+                  totalChapters: manga.totalChapters,
+                  lastScrapedAt: DateTime.now(),
+                  description: manga.description,
+                  genres,
+                })
                 await existingWork.save()
                 console.log(`🔄 Mise à jour : ${manga.title}`)
               } else {
@@ -146,10 +147,11 @@ export default class WorkSeeder extends BaseSeeder {
                   type: 'MANGA',
                   lastScrapedAt: DateTime.now(),
                   description: manga.description,
-                  genres: genres,
+                  genres,
                 })
                 console.log(`➕ Ajouté : ${manga.title}`)
               }
+
             } catch (err: any) {
               console.error(`❌ Erreur traitement ${manga.title} : ${err.message}`)
             }
@@ -157,10 +159,7 @@ export default class WorkSeeder extends BaseSeeder {
         )
       }
 
-      const delay = Math.floor(Math.random() * 1500) + 1000
-      console.log(`🕒 Pause ${delay}ms avant la page suivante...`)
-      await new Promise(res => setTimeout(res, delay))
-
+      await new Promise(res => setTimeout(res, Math.floor(Math.random() * 1500) + 1000))
       page++
     }
 
