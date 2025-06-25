@@ -121,8 +121,8 @@ export default class WorkSeeder extends BaseSeeder {
                 existingWork.totalChapters = manga.totalChapters
                 existingWork.lastScrapedAt = DateTime.now()
                 existingWork.description = manga.description
-                existingWork.genres = manga.genres // <= ICI
-                  await existingWork.save()
+                existingWork.genres = manga.genres
+                await existingWork.save()
                 console.log(`🔄 Mise à jour : ${manga.title}`)
               } else {
                 await Work.create({
@@ -133,11 +133,14 @@ export default class WorkSeeder extends BaseSeeder {
                   type: 'MANGA',
                   lastScrapedAt: DateTime.now(),
                   description: manga.description,
-                  genres: manga.genres, // <= ICI
-
+                  genres: manga.genres,
                 })
                 console.log(`➕ Ajouté : ${manga.title}`)
               }
+
+
+              console.log(`➕ Ajouté : ${manga.title}`)
+
             } catch (err: any) {
               console.error(`❌ Erreur traitement ${manga.title} : ${err.message}`)
             }

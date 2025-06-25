@@ -31,7 +31,10 @@ export default class Work extends BaseModel {
   @hasMany(() => UserProgress)
   declare userprogresses: HasMany<typeof UserProgress>
 
-  @column()
-  declare genres: string[] | null
+  @column({
+    consume: (value: string) => JSON.parse(value), // BDD ➜ JS
+    prepare: (value: string[]) => JSON.stringify(value), // JS ➜ BDD
+  })
+  public genres: string[] | undefined
 
 }
